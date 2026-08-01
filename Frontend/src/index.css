@@ -1,0 +1,61 @@
+:root {
+  --text: #9ca3af;
+  --text-h: #f3f4f6;
+  --bg: #121212;
+  --border: #2e303a;
+  --code-bg: #1f2028;
+  --accent: #c084fc;
+  --accent-bg: rgba(192, 132, 252, 0.15);
+  --accent-border: rgba(192, 132, 252, 0.5);
+
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  color-scheme: dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg);
+}
+
+/* Expanded #root to take full viewport width cleanly */
+#root {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  border-inline: none;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+h1, h2, h3 {
+  font-family: var(--heading);
+  color: var(--text-h);
+}
+
+p {
+  margin: 0;
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 15px;
+  padding: 4px 8px;
+  background: var(--code-bg);
+  border-radius: 4px;
+  color: var(--text-h);
+}

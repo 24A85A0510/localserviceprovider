@@ -1,0 +1,28 @@
+package com.mahesh.localserviceprovider.config;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
+import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+
+@Configuration
+@EnableWebSocketMessageBroker
+public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+
+    @Override
+    public void configureMessageBroker(MessageBrokerRegistry config) {
+        // Topic endpoint for outbound broadcasts
+        config.enableSimpleBroker("/topic");
+        // Application prefix for inbound messages sent from clients
+        config.setApplicationDestinationPrefixes("/app");
+    }
+
+    @Override
+    public void registerStompEndpoints(StompEndpointRegistry registry) {
+        // Register WebSocket handshake endpoint with SockJS fallback
+        registry.addEndpoint("/ws-location")
+                .setAllowedOriginPatterns("http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "*")
+                .withSockJS();
+    }
+}
