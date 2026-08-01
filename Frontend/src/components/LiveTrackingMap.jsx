@@ -23,12 +23,13 @@ const LiveTrackingMap = ({ bookingId, isProvider }) => {
   useEffect(() => {
     let watchId = null;
 
-    // Dynamically choose backend URL (Uses HTTPS on Render, http on localhost)
-    const backendUrl = process.env.REACT_APP_API_BASE_URL || 'https://localserviceprovider.onrender.com';
+    // Dynamically resolve backend base URL and force secure HTTPS protocol for SockJS
+    const baseBackendUrl = import.meta.env.VITE_BACKEND_URL || 'https://localserviceprovider.onrender.com';
+    const secureWsUrl = baseBackendUrl.replace(/^http:\/\//, 'https://') + '/ws-location';
 
-    // Connect to Spring Boot WebSocket Endpoint over HTTPS/WSS
+    // Connect to Spring Boot WebSocket Endpoint
     const client = new Client({
-      webSocketFactory: () => new SockJS(`${backendUrl}/ws-location`),
+      webSocketFactory: () => new SockJS(secureWsUrl),
       reconnectDelay: 5000,
       onConnect: () => {
         console.log(`✅ Connected to WebSocket | Role: ${isProvider ? 'Provider' : 'Customer'} | BookingID: ${bookingId}`);
