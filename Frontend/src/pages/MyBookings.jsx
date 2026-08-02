@@ -132,6 +132,11 @@ const BookingCard = ({
 }) => {
   const status = booking.status ? String(booking.status).toUpperCase() : 'PENDING';
 
+  // Safely resolve customer latitude and longitude from booking object
+  const lat = booking.customerLatitude ?? booking.customerLat ?? booking.latitude;
+  const lng = booking.customerLongitude ?? booking.customerLng ?? booking.longitude;
+  const customerLocation = (lat && lng) ? { lat: Number(lat), lng: Number(lng) } : null;
+
   return (
     <div
       style={{
@@ -345,9 +350,13 @@ const BookingCard = ({
         </div>
       </div>
 
-      {/* Live Map Tracking view */}
+      {/* Live Map Tracking view with customerLocation passed */}
       {status === 'ON_THE_WAY' && LiveTrackingMap && (
-        <LiveTrackingMap bookingId={booking.id} isProvider={isProvider} />
+        <LiveTrackingMap
+          bookingId={booking.id}
+          isProvider={isProvider}
+          customerLocation={customerLocation}
+        />
       )}
     </div>
   );
@@ -482,7 +491,6 @@ const MyBookings = () => {
     setLoading(true);
     setError('');
 
-    // Axios baseURL already contains '/api', so use relative endpoint paths
     const endpoint = isProvider ? '/bookings/provider' : '/bookings/customer';
 
     try {

@@ -13,14 +13,24 @@ public class BookingResponseDTO {
     private String serviceTitle;
     private LocalDateTime bookingDate;
     private String address;
+    private String notes;
     private String status;
     private boolean reviewed;
+
+    // --- Customer GPS Coordinates ---
+    private Double customerLatitude;
+    private Double customerLongitude;
+
+    private String paymentStatus;
+    private Double amount;
 
     public BookingResponseDTO() {}
 
     public BookingResponseDTO(Long id, Long customerId, String customerName, String customerEmail,
                               String customerPhone, Long serviceId, String serviceTitle,
-                              LocalDateTime bookingDate, String address, String status, boolean reviewed) {
+                              LocalDateTime bookingDate, String address, String notes, String status, boolean reviewed,
+                              Double customerLatitude, Double customerLongitude,
+                              String paymentStatus, Double amount) {
         this.id = id;
         this.customerId = customerId;
         this.customerName = customerName;
@@ -30,8 +40,13 @@ public class BookingResponseDTO {
         this.serviceTitle = serviceTitle;
         this.bookingDate = bookingDate;
         this.address = address;
+        this.notes = notes;
         this.status = status;
         this.reviewed = reviewed;
+        this.customerLatitude = customerLatitude;
+        this.customerLongitude = customerLongitude;
+        this.paymentStatus = paymentStatus;
+        this.amount = amount;
     }
 
     // Getters and Setters
@@ -62,9 +77,24 @@ public class BookingResponseDTO {
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
 
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
+
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
     public boolean isReviewed() { return reviewed; }
     public void setReviewed(boolean reviewed) { this.reviewed = reviewed; }
+
+    public Double getCustomerLatitude() { return customerLatitude; }
+    public void setCustomerLatitude(Double customerLatitude) { this.customerLatitude = customerLatitude; }
+
+    public Double getCustomerLongitude() { return customerLongitude; }
+    public void setCustomerLongitude(Double customerLongitude) { this.customerLongitude = customerLongitude; }
+
+    public String getPaymentStatus() { return paymentStatus; }
+    public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
+
+    public Double getAmount() { return amount; }
+    public void setAmount(Double amount) { this.amount = amount; }
 }

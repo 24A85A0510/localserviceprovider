@@ -25,13 +25,19 @@ public class BookingRequestDTO {
     @Size(max = 500, message = "Notes cannot exceed 500 characters")
     private String notes;
 
+    // --- Customer GPS Coordinates ---
+    private Double customerLatitude;
+    private Double customerLongitude;
+
     public BookingRequestDTO() {}
 
-    public BookingRequestDTO(Long serviceId, LocalDateTime bookingDate, String address, String notes) {
+    public BookingRequestDTO(Long serviceId, LocalDateTime bookingDate, String address, String notes, Double customerLatitude, Double customerLongitude) {
         this.serviceId = serviceId;
         this.bookingDate = bookingDate;
         this.address = address;
         this.notes = notes;
+        this.customerLatitude = customerLatitude;
+        this.customerLongitude = customerLongitude;
     }
 
     public Long getServiceId() { return serviceId; }
@@ -45,4 +51,10 @@ public class BookingRequestDTO {
 
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
+
+    public Double getCustomerLatitude() { return customerLatitude; }
+    public void setCustomerLatitude(Double customerLatitude) { this.customerLatitude = customerLatitude; }
+
+    public Double getCustomerLongitude() { return customerLongitude; }
+    public void setCustomerLongitude(Double customerLongitude) { this.customerLongitude = customerLongitude; }
 }

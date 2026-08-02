@@ -78,7 +78,7 @@ const LiveTrackingMap = ({ bookingId, isProvider, customerLocation }) => {
     };
   }, [bookingId, isProvider]);
 
-  // Center calculation logic
+  // Fallback map center point (defaults to Vijayawada if no coords exist yet)
   const defaultCenter = providerCoords
     ? [providerCoords.lat, providerCoords.lng]
     : customerLocation

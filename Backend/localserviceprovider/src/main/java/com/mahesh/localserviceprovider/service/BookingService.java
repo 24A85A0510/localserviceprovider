@@ -61,6 +61,10 @@ public class BookingService {
                 BookingStatus.PENDING
         );
 
+        // --- Persist Customer Map Coordinates ---
+        booking.setCustomerLatitude(dto.getCustomerLatitude());
+        booking.setCustomerLongitude(dto.getCustomerLongitude());
+
         Booking savedBooking = bookingRepository.save(booking);
 
         // 🔔 NOTIFICATION: Alert the provider about the new booking request
@@ -83,10 +87,8 @@ public class BookingService {
 
     // Get all bookings for the logged-in customer
     public List<BookingResponseDTO> getCustomerBookings(String customerEmail) {
-        // Query directly by customer email to avoid ID mapping issues for Google OAuth users
         List<Booking> bookings = bookingRepository.findByCustomerEmail(customerEmail);
 
-        // Fallback: search by customer ID if email lookup returns empty
         if (bookings.isEmpty()) {
             User customer = userRepository.findByEmail(customerEmail).orElse(null);
             if (customer != null) {
@@ -118,7 +120,6 @@ public class BookingService {
 
         long totalBookings = providerBookings.size();
 
-        // Counts COMPLETED or PAID bookings
         long completedCount = providerBookings.stream()
                 .filter(b -> b.getStatus() == BookingStatus.COMPLETED || b.getStatus() == BookingStatus.PAID)
                 .count();
@@ -127,7 +128,6 @@ public class BookingService {
                 .filter(b -> b.getStatus() == BookingStatus.PENDING)
                 .count();
 
-        // Sum earnings from COMPLETED or PAID bookings
         double totalEarnings = providerBookings.stream()
                 .filter(b -> b.getStatus() == BookingStatus.COMPLETED || b.getStatus() == BookingStatus.PAID)
                 .mapToDouble(b -> b.getAmount() != null ? b.getAmount() :
@@ -146,12 +146,10 @@ public class BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found with id: " + bookingId));
 
-        // Ownership Check: Ensure customer owns this booking
         if (!booking.getCustomer().getId().equals(customer.getId())) {
             throw new RuntimeException("Unauthorized: You can only cancel your own bookings");
         }
 
-        // State Check: Only allow cancelling if still PENDING
         if (booking.getStatus() != BookingStatus.PENDING) {
             throw new RuntimeException("Only pending bookings can be cancelled");
         }
@@ -159,7 +157,6 @@ public class BookingService {
         booking.setStatus(BookingStatus.CANCELLED);
         Booking updatedBooking = bookingRepository.save(booking);
 
-        // 🔔 NOTIFICATION: Alert the service provider about the cancellation
         User provider = booking.getService().getProvider();
         if (provider != null) {
             String message = String.format("Booking for service '%s' was cancelled by the customer (%s).",
@@ -179,12 +176,10 @@ public class BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found with id: " + bookingId));
 
-        // Ownership Verification
         if (!booking.getService().getProvider().getId().equals(provider.getId())) {
             throw new RuntimeException("Unauthorized: You do not own the service associated with this booking");
         }
 
-        // State Guard: Prevent changing status of completed, paid, or cancelled bookings
         if (booking.getStatus() == BookingStatus.COMPLETED ||
                 booking.getStatus() == BookingStatus.PAID ||
                 booking.getStatus() == BookingStatus.CANCELLED) {
@@ -194,7 +189,6 @@ public class BookingService {
         booking.setStatus(newStatus);
         Booking updatedBooking = bookingRepository.save(booking);
 
-        // 🔔 NOTIFICATION: Alert the customer about the updated booking status
         User customer = booking.getCustomer();
         if (customer != null) {
             String message = String.format("Your booking for '%s' has been marked as %s.",
@@ -214,12 +208,10 @@ public class BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found with id: " + bookingId));
 
-        // Ensure customer owns the booking
         if (!booking.getCustomer().getId().equals(customer.getId())) {
             throw new RuntimeException("Unauthorized: You can only pay for your own bookings");
         }
 
-        // Apply payment updates
         booking.setPaymentStatus("PAID");
         booking.setPaymentId(transactionId);
         booking.setAmount(amount);
@@ -227,7 +219,6 @@ public class BookingService {
 
         Booking updatedBooking = bookingRepository.save(booking);
 
-        // 🔔 NOTIFICATION: Notify Provider that payment has been completed
         User provider = booking.getService().getProvider();
         if (provider != null) {
             String message = String.format("Payment received! %s paid ₹%.2f for service: %s (Txn ID: %s)",
@@ -257,8 +248,13 @@ public class BookingService {
                 booking.getService().getTitle(),
                 booking.getBookingDate(),
                 booking.getAddress(),
+                null, // notes field if needed, or null
                 booking.getStatus().name(),
-                isReviewed
+                isReviewed,
+                booking.getCustomerLatitude(),
+                booking.getCustomerLongitude(),
+                booking.getPaymentStatus(),
+                booking.getAmount()
         );
     }
 }
