@@ -10,6 +10,7 @@ const Profile = () => {
     name: '',
     email: '',
     phone: '',
+    profilePic: '', // Profile Photo field
   });
   const [isEditing, setIsEditing] = useState(false);
   const [updateMsg, setUpdateMsg] = useState({ type: '', text: '' });
@@ -40,6 +41,7 @@ const Profile = () => {
         name: res.data.name || '',
         email: res.data.email || '',
         phone: res.data.phone || res.data.phoneNumber || '',
+        profilePic: res.data.profilePic || res.data.avatarUrl || '',
       });
     } catch (err) {
       console.error('Error fetching profile:', err);
@@ -58,12 +60,31 @@ const Profile = () => {
       const res = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setActivity(res.data || []);
+
+      // Ensure res.data is an array before setting state to avoid .map errors
+      if (Array.isArray(res.data)) {
+        setActivity(res.data);
+      } else if (res.data && typeof res.data === 'object') {
+        // Handle paginated responses or wrapped objects (e.g. { content: [...] })
+        setActivity(res.data.content || res.data.services || res.data.bookings || []);
+      } else {
+        setActivity([]);
+      }
     } catch (err) {
       console.error('Error fetching activity:', err);
       setActivity([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handle Local Photo Change
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const previewUrl = URL.createObjectURL(file);
+      setUserInfo((prev) => ({ ...prev, profilePic: previewUrl }));
+      // Optional: You can upload 'file' to server directly here if using FormData
     }
   };
 
@@ -100,8 +121,31 @@ const Profile = () => {
         </div>
       )}
 
-      {/* --- Section 1: Contact Information --- */}
+      {/* --- Section 1: Contact Information & Profile Picture --- */}
       <div style={styles.card}>
+        {/* Profile Avatar Header */}
+        <div style={styles.avatarSection}>
+          <div style={styles.avatarContainer}>
+            <img
+              src={userInfo.profilePic || 'https://via.placeholder.com/120?text=User'}
+              alt="Profile"
+              style={styles.avatarImg}
+            />
+            {isEditing && (
+              <label htmlFor="avatar-upload" style={styles.uploadBadge}>
+                📷
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoChange}
+                  style={{ display: 'none' }}
+                />
+              </label>
+            )}
+          </div>
+        </div>
+
         <h3>Contact Information</h3>
         {!isEditing ? (
           <div>
@@ -167,7 +211,7 @@ const Profile = () => {
         </h3>
         {loading ? (
           <p>Loading activity...</p>
-        ) : activity.length === 0 ? (
+        ) : !Array.isArray(activity) || activity.length === 0 ? (
           <p>No activity found.</p>
         ) : (
           <ul style={styles.activityList}>
@@ -213,6 +257,10 @@ const styles = {
   container: { maxWidth: '800px', margin: '2rem auto', padding: '0 1rem', color: '#fff' },
   card: { backgroundColor: '#222', padding: '1.5rem', borderRadius: '8px', marginBottom: '1.5rem', border: '1px solid #333' },
   alert: { padding: '0.8rem', color: '#fff', borderRadius: '4px', marginBottom: '1rem' },
+  avatarSection: { display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' },
+  avatarContainer: { position: 'relative', width: '120px', height: '120px' },
+  avatarImg: { width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', border: '3px solid #007bff' },
+  uploadBadge: { position: 'absolute', bottom: '0', right: '0', backgroundColor: '#007bff', padding: '8px', borderRadius: '50%', cursor: 'pointer', fontSize: '1rem' },
   form: { display: 'flex', flexDirection: 'column', gap: '1rem' },
   formGroup: { display: 'flex', flexDirection: 'column', gap: '0.3rem' },
   input: { padding: '0.5rem', borderRadius: '4px', border: '1px solid #444', backgroundColor: '#333', color: '#fff' },
