@@ -4,8 +4,9 @@ import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import RoutingMachine from './RoutingMachine';
 
-// Fix Leaflet default marker icons for React
+// Fix Leaflet default marker icons
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -17,45 +18,37 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-const LiveTrackingMap = ({ bookingId, isProvider }) => {
-  const [coords, setCoords] = useState(null);
+const LiveTrackingMap = ({ bookingId, isProvider, customerLocation }) => {
+  const [providerCoords, setProviderCoords] = useState(null);
 
   useEffect(() => {
     let watchId = null;
 
-    // Dynamically resolve backend base URL and force secure HTTPS protocol for SockJS
     const baseBackendUrl = import.meta.env.VITE_BACKEND_URL || 'https://localserviceprovider.onrender.com';
     const secureWsUrl = baseBackendUrl.replace(/^http:\/\//, 'https://') + '/ws-location';
 
-    // Connect to Spring Boot WebSocket Endpoint
     const client = new Client({
       webSocketFactory: () => new SockJS(secureWsUrl),
       reconnectDelay: 5000,
       onConnect: () => {
         console.log(`✅ Connected to WebSocket | Role: ${isProvider ? 'Provider' : 'Customer'} | BookingID: ${bookingId}`);
 
-        // 1. CUSTOMER: Subscribe to provider updates
         if (!isProvider) {
           const destination = `/topic/booking/${bookingId}`;
-          console.log(`📡 Subscribing customer to: ${destination}`);
-
           client.subscribe(destination, (message) => {
             const data = JSON.parse(message.body);
-            console.log('📍 Received location update:', data);
             if (data.latitude && data.longitude) {
-              setCoords([data.latitude, data.longitude]);
+              setProviderCoords({ lat: data.latitude, lng: data.longitude });
             }
           });
         }
 
-        // 2. PROVIDER: Start GPS Watcher once WebSocket connection is ACTIVE
         if (isProvider && 'geolocation' in navigator) {
           watchId = navigator.geolocation.watchPosition(
             (position) => {
               const { latitude, longitude } = position.coords;
-              setCoords([latitude, longitude]);
+              setProviderCoords({ lat: latitude, lng: longitude });
 
-              console.log(`📤 Provider sending location: ${latitude}, ${longitude}`);
               client.publish({
                 destination: '/app/update-location',
                 body: JSON.stringify({
@@ -85,24 +78,48 @@ const LiveTrackingMap = ({ bookingId, isProvider }) => {
     };
   }, [bookingId, isProvider]);
 
+  // Center calculation logic
+  const defaultCenter = providerCoords
+    ? [providerCoords.lat, providerCoords.lng]
+    : customerLocation
+    ? [customerLocation.lat, customerLocation.lng]
+    : [16.5062, 80.6480];
+
   return (
     <div style={{ marginTop: '16px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #334155' }}>
       <div style={{ backgroundColor: '#0f172a', padding: '10px 16px', fontSize: '13px', color: '#38bdf8', fontWeight: '600' }}>
         {isProvider ? '📡 Live Broadcasting Location...' : '📍 Live Provider Tracking'}
       </div>
 
-      <div style={{ height: '300px', width: '100%', backgroundColor: '#1e293b' }}>
-        {coords ? (
-          <MapContainer center={coords} zoom={16} style={{ height: '100%', width: '100%' }}>
+      <div style={{ height: '320px', width: '100%', backgroundColor: '#1e293b' }}>
+        {providerCoords || customerLocation ? (
+          <MapContainer center={defaultCenter} zoom={14} style={{ height: '100%', width: '100%' }}>
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             />
-            <Marker position={coords}>
-              <Popup>
-                {isProvider ? 'Your Current Location' : 'Provider is here!'}
-              </Popup>
-            </Marker>
+
+            {/* Provider Pin */}
+            {providerCoords && (
+              <Marker position={[providerCoords.lat, providerCoords.lng]}>
+                <Popup>{isProvider ? 'You (Provider)' : 'Provider Location'}</Popup>
+              </Marker>
+            )}
+
+            {/* Customer Pin */}
+            {customerLocation && (
+              <Marker position={[customerLocation.lat, customerLocation.lng]}>
+                <Popup>Customer Location</Popup>
+              </Marker>
+            )}
+
+            {/* Shortest Navigation Route */}
+            {providerCoords && customerLocation && (
+              <RoutingMachine
+                providerCoords={providerCoords}
+                customerCoords={customerLocation}
+              />
+            )}
           </MapContainer>
         ) : (
           <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '14px' }}>

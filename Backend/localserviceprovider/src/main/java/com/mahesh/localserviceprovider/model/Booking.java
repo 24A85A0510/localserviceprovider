@@ -24,13 +24,20 @@ public class Booking extends BaseEntity {
     private LocalDateTime bookingDate;
     private String address;
 
+    // --- Customer GPS Coordinates ---
+    @Column(name = "customer_latitude")
+    private Double customerLatitude;
+
+    @Column(name = "customer_longitude")
+    private Double customerLongitude;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
     private BookingStatus status = BookingStatus.PENDING;
 
     // --- Payment Fields ---
     @Column(name = "payment_status")
-    private String paymentStatus = "UNPAID"; // UNPAID / PAID
+    private String paymentStatus = "UNPAID";
 
     @Column(name = "payment_id")
     private String paymentId;
@@ -67,6 +74,12 @@ public class Booking extends BaseEntity {
 
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
+
+    public Double getCustomerLatitude() { return customerLatitude; }
+    public void setCustomerLatitude(Double customerLatitude) { this.customerLatitude = customerLatitude; }
+
+    public Double getCustomerLongitude() { return customerLongitude; }
+    public void setCustomerLongitude(Double customerLongitude) { this.customerLongitude = customerLongitude; }
 
     public BookingStatus getStatus() { return status; }
     public void setStatus(BookingStatus status) { this.status = status; }

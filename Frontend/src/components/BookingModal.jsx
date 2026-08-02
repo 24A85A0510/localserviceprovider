@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../api/axios';
+import LocationPickerMap from './LocationPickerMap';
 
 const BookingModal = ({ service, onClose, onSuccess }) => {
   const [bookingDate, setBookingDate] = useState('');
   const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
+  const [customerLocation, setCustomerLocation] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -38,12 +40,16 @@ const BookingModal = ({ service, onClose, onSuccess }) => {
           : bookingDate
         : '';
 
-      await API.post('/bookings', {
+      const payload = {
         serviceId: service.id,
         bookingDate: formattedDate,
         address: address.trim(),
         notes: notes.trim(),
-      });
+        customerLatitude: customerLocation ? customerLocation.lat : null,
+        customerLongitude: customerLocation ? customerLocation.lng : null,
+      };
+
+      await API.post('/bookings', payload);
 
       alert('Booking request submitted successfully!');
       if (onSuccess) onSuccess();
@@ -90,6 +96,8 @@ const BookingModal = ({ service, onClose, onSuccess }) => {
           borderRadius: '8px',
           width: '90%',
           maxWidth: '500px',
+          maxHeight: '90vh',
+          overflowY: 'auto',
           border: '1px solid #333',
           color: '#fff',
         }}
@@ -176,6 +184,9 @@ const BookingModal = ({ service, onClose, onSuccess }) => {
               }}
             />
           </div>
+
+          {/* Interactive Location Picker Map */}
+          <LocationPickerMap onSelectLocation={(pos) => setCustomerLocation(pos)} />
 
           <div style={{ marginBottom: '20px' }}>
             <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Notes (Optional):</label>

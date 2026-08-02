@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import API from '../api/axios';
+import LocationPickerMap from '../components/LocationPickerMap';
 
 const BookService = () => {
   const { serviceId } = useParams();
@@ -10,6 +11,7 @@ const BookService = () => {
   const [bookingDate, setBookingDate] = useState('');
   const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
+  const [customerLocation, setCustomerLocation] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -47,14 +49,18 @@ const BookService = () => {
       formattedDate = `${bookingDate}:00`;
     }
 
+    const payload = {
+      serviceId: parseInt(serviceId, 10),
+      bookingDate: formattedDate,
+      address,
+      notes,
+      customerLatitude: customerLocation ? customerLocation.lat : null,
+      customerLongitude: customerLocation ? customerLocation.lng : null,
+    };
+
     try {
       // Direct call to /api/bookings to ensure route matches @RequestMapping("/api/bookings")
-      await API.post('/api/bookings', {
-        serviceId: parseInt(serviceId, 10),
-        bookingDate: formattedDate,
-        address,
-        notes,
-      });
+      await API.post('/api/bookings', payload);
 
       alert('Booking request created successfully!');
       navigate('/my-bookings');
@@ -62,12 +68,7 @@ const BookService = () => {
       if (err.response?.status === 404) {
         // Fallback retry if Axios baseURL already ends in /api
         try {
-          await API.post('/bookings', {
-            serviceId: parseInt(serviceId, 10),
-            bookingDate: formattedDate,
-            address,
-            notes,
-          });
+          await API.post('/bookings', payload);
           alert('Booking request created successfully!');
           navigate('/my-bookings');
           return;
@@ -152,6 +153,9 @@ const BookService = () => {
             }}
           />
         </div>
+
+        {/* Interactive Location Picker Map */}
+        <LocationPickerMap onSelectLocation={(pos) => setCustomerLocation(pos)} />
 
         <div>
           <label style={{ display: 'block', marginBottom: '5px' }}>Notes / Special Requests</label>

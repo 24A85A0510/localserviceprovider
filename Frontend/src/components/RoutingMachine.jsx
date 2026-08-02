@@ -9,7 +9,6 @@ const RoutingMachine = ({ providerCoords, customerCoords }) => {
   useEffect(() => {
     if (!map || !providerCoords || !customerCoords) return;
 
-    // Create the routing control for the shortest driving route
     const routingControl = L.Routing.control({
       waypoints: [
         L.latLng(providerCoords.lat, providerCoords.lng),
@@ -19,18 +18,17 @@ const RoutingMachine = ({ providerCoords, customerCoords }) => {
       addWaypoints: false,
       draggableWaypoints: false,
       fitSelectedRoutes: true,
-      show: false, // Set to false to hide step-by-step turn instructions box
+      show: false,
       lineOptions: {
-        styles: [{ color: '#007bff', weight: 5, opacity: 0.8 }],
+        styles: [{ color: '#2563eb', weight: 5, opacity: 0.8 }],
       },
     }).addTo(map);
 
-    // Cleanup route when coordinates update or component unmounts
     return () => {
       try {
         map.removeControl(routingControl);
       } catch (e) {
-        // Safe fallback for map cleanup
+        // Safe fallback for map control cleanup
       }
     };
   }, [map, providerCoords, customerCoords]);
