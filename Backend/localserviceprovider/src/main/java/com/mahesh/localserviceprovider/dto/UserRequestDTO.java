@@ -23,6 +23,8 @@ public class UserRequestDTO {
     @NotNull(message = "Role is required")
     private Role role;
 
+    private String profilePic;
+
     public UserRequestDTO() {}
 
     public UserRequestDTO(String name, String email, String password, String phone, Role role) {
@@ -31,6 +33,15 @@ public class UserRequestDTO {
         this.password = password;
         this.phone = phone;
         this.role = role;
+    }
+
+    public UserRequestDTO(String name, String email, String password, String phone, Role role, String profilePic) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.phone = phone;
+        this.role = role;
+        this.profilePic = profilePic;
     }
 
     public String getName() { return name; }
@@ -47,4 +58,7 @@ public class UserRequestDTO {
 
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
+
+    public String getProfilePic() { return profilePic; }
+    public void setProfilePic(String profilePic) { this.profilePic = profilePic; }
 }

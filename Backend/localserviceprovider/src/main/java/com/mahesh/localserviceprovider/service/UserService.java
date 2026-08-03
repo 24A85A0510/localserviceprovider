@@ -50,6 +50,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
         user.setPhone(requestDTO.getPhone() != null ? requestDTO.getPhone().trim() : null);
         user.setRole(requestDTO.getRole());
+        user.setProfilePic(requestDTO.getProfilePic()); // Save profilePic on creation
 
         User savedUser = userRepository.save(user);
         return convertToResponseDTO(savedUser);
@@ -118,6 +119,11 @@ public class UserService {
             user.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
         }
 
+        // Update profile picture
+        if (requestDTO.getProfilePic() != null) {
+            user.setProfilePic(requestDTO.getProfilePic());
+        }
+
         User updatedUser = userRepository.save(user);
         return convertToResponseDTO(updatedUser);
     }
@@ -184,7 +190,8 @@ public class UserService {
                 user.getName(),
                 user.getEmail(),
                 user.getPhone(),
-                user.getRole() != null ? user.getRole().name() : null
+                user.getRole() != null ? user.getRole().name() : null,
+                user.getProfilePic()
         );
     }
 }

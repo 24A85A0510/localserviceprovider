@@ -10,7 +10,7 @@ const Profile = () => {
     name: '',
     email: '',
     phone: '',
-    profilePic: '', // Profile Photo field
+    profilePic: '', // Stores Base64 data string for persistence
   });
   const [isEditing, setIsEditing] = useState(false);
   const [updateMsg, setUpdateMsg] = useState({ type: '', text: '' });
@@ -78,13 +78,15 @@ const Profile = () => {
     }
   };
 
-  // Handle Local Photo Change
+  // Converts uploaded image file to a persistent Base64 Data URL
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const previewUrl = URL.createObjectURL(file);
-      setUserInfo((prev) => ({ ...prev, profilePic: previewUrl }));
-      // Optional: You can upload 'file' to server directly here if using FormData
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setUserInfo((prev) => ({ ...prev, profilePic: reader.result }));
+      };
+      reader.readAsDataURL(file);
     }
   };
 

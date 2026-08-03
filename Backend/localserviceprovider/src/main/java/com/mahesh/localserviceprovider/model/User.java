@@ -37,6 +37,11 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private Role role;
 
+    // --- Profile Picture Field (Persisted in MySQL as LONGTEXT) ---
+    @Lob
+    @Column(name = "profile_pic", columnDefinition = "LONGTEXT")
+    private String profilePic;
+
     // --- OTP Reset Fields ---
     @Column(name = "reset_otp")
     private String resetOtp;
@@ -71,6 +76,17 @@ public class User extends BaseEntity {
         this.password = password;
         this.phone = phone;
         this.role = role;
+    }
+
+    // Parameterized Constructor including profilePic
+    public User(Long id, String name, String email, String password, String phone, Role role, String profilePic) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.phone = phone;
+        this.role = role;
+        this.profilePic = profilePic;
     }
 
     // Getters and Setters
@@ -120,6 +136,14 @@ public class User extends BaseEntity {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public String getProfilePic() {
+        return profilePic;
+    }
+
+    public void setProfilePic(String profilePic) {
+        this.profilePic = profilePic;
     }
 
     public String getResetOtp() {

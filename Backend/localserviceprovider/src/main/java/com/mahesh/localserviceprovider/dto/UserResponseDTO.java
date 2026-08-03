@@ -6,6 +6,7 @@ public class UserResponseDTO {
     private String email;
     private String phone;
     private String role; // String instead of Role
+    private String profilePic;
 
     public UserResponseDTO() {}
 
@@ -15,6 +16,15 @@ public class UserResponseDTO {
         this.email = email;
         this.phone = phone;
         this.role = role;
+    }
+
+    public UserResponseDTO(Long id, String name, String email, String phone, String role, String profilePic) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.phone = phone;
+        this.role = role;
+        this.profilePic = profilePic;
     }
 
     // Getters and Setters
@@ -32,4 +42,7 @@ public class UserResponseDTO {
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+
+    public String getProfilePic() { return profilePic; }
+    public void setProfilePic(String profilePic) { this.profilePic = profilePic; }
 }
