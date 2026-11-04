@@ -39,7 +39,7 @@ public class AuthController {
     public ResponseEntity<?> requestOtp(@Valid @RequestBody ForgotPasswordRequest request) {
         try {
             userService.generateAndSendOtp(request);
-            return ResponseEntity.ok("OTP sent successfully to your registered phone number.");
+            return ResponseEntity.ok("OTP sent successfully to your registered email address.");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

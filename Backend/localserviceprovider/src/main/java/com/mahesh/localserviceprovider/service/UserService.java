@@ -31,6 +31,9 @@ public class UserService {
     @Autowired
     private JwtUtils jwtUtils;
 
+    @Autowired
+    private EmailService emailService;
+
     public List<UserResponseDTO> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(this::convertToResponseDTO)
@@ -140,7 +143,7 @@ public class UserService {
     // --- FORGOT PASSWORD & OTP WORKFLOW (EXACT EMAIL + PHONE MATCH) ---
     // =========================================================================
 
-    // 1. Generate & Save 6-digit OTP
+    // 1. Generate & Save 6-digit OTP & Dispatch Real Email
     @Transactional
     public void generateAndSendOtp(ForgotPasswordRequest request) {
         User user = userRepository.findByEmailAndPhone(request.getEmail().trim(), request.getPhone().trim())
@@ -154,10 +157,13 @@ public class UserService {
         user.setOtpExpiryTime(LocalDateTime.now().plusMinutes(10));
         userRepository.save(user);
 
-        // Console logger
+        // Console logger for local inspection
         System.out.println("==========================================");
         System.out.println("🔐 RESET OTP FOR [" + user.getEmail() + "] IS: " + otp);
         System.out.println("==========================================");
+
+        // Dispatch real email via Gmail SMTP
+        emailService.sendOtpEmail(user.getEmail(), otp);
     }
 
     // 2. Verify OTP & Update Password
