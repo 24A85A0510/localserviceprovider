@@ -41,7 +41,6 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // Prevent 302 redirects for unauthenticated REST API calls
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 )
@@ -71,7 +70,6 @@ public class SecurityConfig {
                         ).permitAll()
 
                         // 2. React SPA Client-Side Navigation Routes
-                        // Allows the browser to reload on non-API paths without getting a 401
                         .requestMatchers(HttpMethod.GET,
                                 "/login",
                                 "/register",
@@ -84,35 +82,39 @@ public class SecurityConfig {
                                 "/my-bookings/**"
                         ).permitAll()
 
-                        // 3. Public GET APIs
+                        // 3. AI Assistant Endpoints (Publicly accessible for customer queries)
+                        .requestMatchers("/api/ai/**").permitAll()
+
+                        // 4. Public GET APIs
                         .requestMatchers(HttpMethod.GET, "/api/services/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
 
-                        // 4. Admin-Only Endpoints
+                        // 5. Admin-Only Endpoints
                         .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
 
-                        // 5. Provider Reply to Review
+                        // 6. Provider Reply to Review
                         .requestMatchers(HttpMethod.POST, "/api/reviews/*/reply").hasAnyAuthority("ROLE_PROVIDER", "PROVIDER")
 
-                        // 6. Customer-only Endpoints
+                        // 7. Customer-only Endpoints
                         .requestMatchers(HttpMethod.POST, "/api/bookings/**").hasAnyAuthority("ROLE_CUSTOMER", "CUSTOMER")
                         .requestMatchers("/api/bookings/customer/**").hasAnyAuthority("ROLE_CUSTOMER", "CUSTOMER")
                         .requestMatchers(HttpMethod.POST, "/api/reviews/**").hasAnyAuthority("ROLE_CUSTOMER", "CUSTOMER")
 
-                        // 7. Booking Status Updates
+                        // 8. Booking Status Updates
                         .requestMatchers(HttpMethod.PUT, "/api/bookings/*/status").hasAnyAuthority("ROLE_CUSTOMER", "CUSTOMER", "ROLE_PROVIDER", "PROVIDER")
                         .requestMatchers("/api/bookings/provider/**").hasAnyAuthority("ROLE_PROVIDER", "PROVIDER")
 
-                        // 8. Service & Category Management
+                        // 9. Service & Category Management
                         .requestMatchers(HttpMethod.POST, "/api/categories/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/services/**").hasAnyAuthority("ROLE_PROVIDER", "PROVIDER", "ROLE_ADMIN", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/services/**").hasAnyAuthority("ROLE_PROVIDER", "PROVIDER", "ROLE_ADMIN", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/services/**").hasAnyAuthority("ROLE_PROVIDER", "PROVIDER", "ROLE_ADMIN", "ADMIN")
 
-                        // 9. Notification Endpoints
+                        // 10. Notification Endpoints
                         .requestMatchers("/api/notifications/**").authenticated()
 
-                        // 10. All other requests
+                        // 11. All other requests
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2

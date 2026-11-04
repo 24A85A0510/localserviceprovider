@@ -76,6 +76,13 @@
             <version>2.5.0</version>
         </dependency>
 
+        <!-- Official Google GenAI SDK for Gemini -->
+        <dependency>
+            <groupId>com.google.genai</groupId>
+            <artifactId>google-genai</artifactId>
+            <version>0.1.1</version>
+        </dependency>
+
         <!-- Database -->
         <dependency>
             <groupId>com.mysql</groupId>

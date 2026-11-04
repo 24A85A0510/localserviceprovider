@@ -24,6 +24,10 @@ public class ServiceDTO {
     private Long providerId;
     private String providerName;
 
+    // AI Smart Matching & Location Ranking Fields
+    private Integer matchScore;    // e.g., 95 (for 95% match)
+    private String matchReason;    // e.g., "Top match in your area • Leaks & Pipe specialist"
+
     public ServiceDTO() {
     }
 
@@ -121,5 +125,21 @@ public class ServiceDTO {
 
     public void setProviderName(String providerName) {
         this.providerName = providerName;
+    }
+
+    public Integer getMatchScore() {
+        return matchScore;
+    }
+
+    public void setMatchScore(Integer matchScore) {
+        this.matchScore = matchScore;
+    }
+
+    public String getMatchReason() {
+        return matchReason;
+    }
+
+    public void setMatchReason(String matchReason) {
+        this.matchReason = matchReason;
     }
 }
