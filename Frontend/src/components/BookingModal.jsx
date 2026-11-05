@@ -1,27 +1,77 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 import LocationPickerMap from './LocationPickerMap';
 
 const BookingModal = ({ service, onClose, onSuccess }) => {
-  const [bookingDate, setBookingDate] = useState('');
+  // Helper to format Date object into YYYY-MM-DDTHH:mm format for datetime-local
+  const getInitialDateTime = () => {
+    const now = new Date();
+    // Default to 1 hour from now, rounded to 00 minutes
+    now.setHours(now.getHours() + 1);
+    now.setMinutes(0, 0, 0);
+
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  // Min date-time string to prevent booking in the past
+  const minDateTime = useMemo(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }, []);
+
+  const [bookingDate, setBookingDate] = useState(getInitialDateTime());
   const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
   const [customerLocation, setCustomerLocation] = useState(null);
+  const [geocoding, setGeocoding] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
   const navigate = useNavigate();
 
+  // Reverse geocode selected coordinates
+  const handleLocationPicked = async (pos) => {
+    setCustomerLocation(pos);
+    if (!pos || !pos.lat || !pos.lng) return;
+
+    try {
+      setGeocoding(true);
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${pos.lat}&lon=${pos.lng}`
+      );
+      const data = await res.json();
+      if (data && data.display_name) {
+        setAddress(data.display_name);
+      }
+    } catch (err) {
+      console.warn('Reverse geocode failed:', err);
+      if (!address) {
+        setAddress(`Lat: ${pos.lat.toFixed(5)}, Lng: ${pos.lng.toFixed(5)}`);
+      }
+    } finally {
+      setGeocoding(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    // Step 1: Extract and sanitize token
     const rawToken = localStorage.getItem('token');
     const token = rawToken ? rawToken.replace(/^"(.*)"$/, '$1').trim() : null;
 
-    // Step 2: Validate token presence and JWT structure ('eyJ')
     if (!token || token === 'null' || token === 'undefined' || !token.startsWith('eyJ')) {
       setError('Session expired. Redirecting to login...');
       setTimeout(() => {
@@ -30,15 +80,15 @@ const BookingModal = ({ service, onClose, onSuccess }) => {
       return;
     }
 
+    if (!bookingDate) {
+      setError('Please choose a valid booking date and time.');
+      return;
+    }
+
     setSubmitting(true);
 
     try {
-      // Step 3: Format datetime-local string (YYYY-MM-DDTHH:mm:ss)
-      const formattedDate = bookingDate
-        ? bookingDate.length === 16
-          ? `${bookingDate}:00`
-          : bookingDate
-        : '';
+      const formattedDate = bookingDate.length === 16 ? `${bookingDate}:00` : bookingDate;
 
       const payload = {
         serviceId: service.id,
@@ -74,167 +124,274 @@ const BookingModal = ({ service, onClose, onSuccess }) => {
     }
   };
 
+  // Friendly human readable preview of selected date & AM/PM time
+  const readableDateTime = useMemo(() => {
+    if (!bookingDate) return '';
+    const d = new Date(bookingDate);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  }, [bookingDate]);
+
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.75)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-      }}
-    >
-      <div
-        style={{
-          backgroundColor: '#1a1a1a',
-          padding: '25px',
-          borderRadius: '8px',
-          width: '90%',
-          maxWidth: '500px',
-          maxHeight: '90vh',
-          overflowY: 'auto',
-          border: '1px solid #333',
-          color: '#fff',
-        }}
-      >
-        <h3 style={{ marginTop: 0 }}>Book {service?.title || service?.name}</h3>
-        <p style={{ color: '#28a745', fontWeight: 'bold', fontSize: '18px', margin: '5px 0 15px 0' }}>
-          Price: ₹{service?.price}
-        </p>
+    <div className="booking-modal-backdrop">
+      <style>{`
+        .booking-modal-backdrop {
+          position: fixed;
+          inset: 0;
+          background-color: rgba(15, 23, 42, 0.65);
+          backdrop-filter: blur(4px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          padding: 16px;
+        }
+
+        .booking-modal-card {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 18px;
+          padding: 28px;
+          width: 100%;
+          max-width: 540px;
+          max-height: 90vh;
+          overflow-y: auto;
+          color: #0f172a;
+          box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.2);
+          box-sizing: border-box;
+          font-family: inherit;
+        }
+
+        .modal-head-title {
+          font-size: 1.35rem;
+          font-weight: 800;
+          color: #0f172a;
+          margin: 0 0 4px 0;
+        }
+
+        .modal-price-tag {
+          color: #16a34a;
+          font-weight: 800;
+          font-size: 1.15rem;
+          margin: 0 0 18px 0;
+        }
+
+        .field-group {
+          margin-bottom: 16px;
+        }
+
+        .field-label {
+          display: flex;
+          justify-content: space-between;
+          font-size: 0.85rem;
+          font-weight: 700;
+          color: #334155;
+          margin-bottom: 6px;
+        }
+
+        .field-input {
+          width: 100%;
+          border: 1.5px solid #cbd5e1;
+          border-radius: 10px;
+          padding: 10px 14px;
+          font-size: 0.9rem;
+          color: #0f172a !important;
+          background: #ffffff !important;
+          background-color: #ffffff !important;
+          outline: none;
+          box-sizing: border-box;
+          font-family: inherit;
+        }
+
+        .field-input:focus {
+          border-color: #2563eb;
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        /* Make calendar and clock icon clearly visible and clickable */
+        .field-input::-webkit-calendar-picker-indicator {
+          cursor: pointer;
+          opacity: 0.85;
+          filter: invert(0.2);
+          padding: 4px;
+        }
+
+        .field-input::-webkit-calendar-picker-indicator:hover {
+          opacity: 1;
+        }
+
+        .datetime-preview-badge {
+          display: inline-block;
+          margin-top: 6px;
+          padding: 4px 10px;
+          background: #eff6ff;
+          color: #1d4ed8;
+          border: 1px solid #bfdbfe;
+          border-radius: 6px;
+          font-size: 0.8rem;
+          font-weight: 600;
+        }
+
+        .modal-actions-row {
+          display: flex;
+          gap: 12px;
+          justify-content: flex-end;
+          margin-top: 22px;
+        }
+
+        .btn-modal-cancel {
+          padding: 10px 18px;
+          background: #f1f5f9;
+          color: #475569;
+          border: 1px solid #cbd5e1;
+          border-radius: 9px;
+          font-size: 0.88rem;
+          font-weight: 600;
+          cursor: pointer;
+        }
+
+        .btn-modal-cancel:hover {
+          background: #e2e8f0;
+        }
+
+        .btn-modal-submit {
+          padding: 10px 22px;
+          background: #2563eb;
+          color: #ffffff;
+          border: none;
+          border-radius: 9px;
+          font-size: 0.88rem;
+          font-weight: 700;
+          cursor: pointer;
+          box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-modal-submit:hover {
+          background: #1d4ed8;
+        }
+
+        .btn-modal-submit:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .modal-error-box {
+          background: #fef2f2;
+          color: #b91c1c;
+          border: 1px solid #fecaca;
+          padding: 10px 14px;
+          border-radius: 8px;
+          font-size: 0.84rem;
+          margin-bottom: 16px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+      `}</style>
+
+      <div className="booking-modal-card">
+        <h3 className="modal-head-title">Book {service?.title || service?.name || 'Service'}</h3>
+        <p className="modal-price-tag">Price: ₹{service?.price}</p>
 
         {error && (
-          <div
-            style={{
-              backgroundColor: '#721c24',
-              color: '#f8d7da',
-              padding: '10px 14px',
-              borderRadius: '4px',
-              marginBottom: '15px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              fontSize: '14px',
-            }}
-          >
+          <div className="modal-error-box">
             <span>{error}</span>
             {error.includes('login') && (
               <button
                 type="button"
                 onClick={() => navigate('/login')}
                 style={{
-                  backgroundColor: '#f8d7da',
-                  color: '#721c24',
+                  backgroundColor: '#b91c1c',
+                  color: '#ffffff',
                   border: 'none',
                   padding: '4px 10px',
-                  borderRadius: '4px',
+                  borderRadius: '6px',
                   cursor: 'pointer',
                   fontWeight: 'bold',
-                  fontSize: '12px',
-                  marginLeft: '10px',
-                  whiteSpace: 'nowrap',
+                  fontSize: '0.75rem',
                 }}
               >
-                Log In Now
+                Log In
               </button>
             )}
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Date & Time:</label>
+          {/* DATE & TIME PICKER */}
+          <div className="field-group">
+            <label className="field-label">
+              <span>Date & Time:</span>
+              <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '500' }}>
+                Tap calendar icon to change
+              </span>
+            </label>
             <input
               type="datetime-local"
               required
+              min={minDateTime}
+              className="field-input"
               value={bookingDate}
               onChange={(e) => setBookingDate(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                borderRadius: '4px',
-                backgroundColor: '#111',
-                color: '#fff',
-                border: '1px solid #444',
-                boxSizing: 'border-box',
-              }}
             />
+            {readableDateTime && (
+              <div className="datetime-preview-badge">
+                📅 Scheduled: {readableDateTime}
+              </div>
+            )}
           </div>
 
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Service Address:</label>
+          {/* SERVICE ADDRESS */}
+          <div className="field-group">
+            <label className="field-label">
+              <span>Service Address:</span>
+              {geocoding && (
+                <span style={{ fontSize: '0.75rem', color: '#2563eb', fontWeight: '500' }}>
+                  Resolving address...
+                </span>
+              )}
+            </label>
             <input
               type="text"
               required
-              placeholder="Enter street address..."
+              placeholder="Enter street address or pick on map..."
+              className="field-input"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                borderRadius: '4px',
-                backgroundColor: '#111',
-                color: '#fff',
-                border: '1px solid #444',
-                boxSizing: 'border-box',
-              }}
             />
           </div>
 
-          {/* Interactive Location Picker Map */}
-          <LocationPickerMap onSelectLocation={(pos) => setCustomerLocation(pos)} />
+          {/* MAP PICKER */}
+          <div className="field-group">
+            <label className="field-label">Select Location on Map:</label>
+            <LocationPickerMap onSelectLocation={handleLocationPicked} />
+          </div>
 
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Notes (Optional):</label>
+          {/* NOTES */}
+          <div className="field-group">
+            <label className="field-label">Notes (Optional):</label>
             <textarea
               rows={3}
               placeholder="Any specific requirements or instructions..."
+              className="field-input"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                borderRadius: '4px',
-                backgroundColor: '#111',
-                color: '#fff',
-                border: '1px solid #444',
-                boxSizing: 'border-box',
-              }}
             />
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-            <button
-              type="button"
-              onClick={onClose}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#444',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-              }}
-            >
+          <div className="modal-actions-row">
+            <button type="button" onClick={onClose} className="btn-modal-cancel">
               Cancel
             </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#007bff',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-              }}
-            >
+            <button type="submit" disabled={submitting} className="btn-modal-submit">
               {submitting ? 'Submitting...' : 'Confirm Booking'}
             </button>
           </div>

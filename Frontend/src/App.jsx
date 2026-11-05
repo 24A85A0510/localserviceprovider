@@ -1,10 +1,11 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import DashboardLayout from './components/DashboardLayout';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Services from './pages/Services';
+import CustomerDashboard from './pages/CustomerDashboard';
 import CreateService from './pages/CreateService';
 import EditService from './pages/EditService';
 import BookService from './pages/BookService';
@@ -15,9 +16,15 @@ import ProtectedRoute from './components/ProtectedRoute';
 import OAuth2RedirectHandler from './pages/OAuth2RedirectHandler';
 
 function App() {
+  const location = useLocation();
+
+  // Public paths where the standalone top Navbar should be shown
+  const publicPaths = ['/', '/login', '/register', '/oauth2/redirect'];
+  const showStandaloneNavbar = publicPaths.includes(location.pathname);
+
   return (
     <>
-      <Navbar />
+      {showStandaloneNavbar && <Navbar />}
       <Routes>
         {/* PUBLIC FULL-WIDTH ROUTES (NO SIDEBAR) */}
         <Route path="/" element={<Home />} />
@@ -25,8 +32,19 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
 
-        {/* AUTHENTICATED DASHBOARD ROUTES (PERMANENT SIDEBAR) */}
+        {/* AUTHENTICATED DASHBOARD ROUTES (HANDLES ITS OWN SIDEBAR & TOPBAR) */}
         <Route element={<DashboardLayout />}>
+          {/* Main Customer Landing Overview */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['CUSTOMER']}>
+                <CustomerDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Browse & Discovery Catalog */}
           <Route path="/services" element={<Services />} />
 
           {/* Customer Routes */}

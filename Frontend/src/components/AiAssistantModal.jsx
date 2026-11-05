@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 
-export default function AiAssistantModal({ isOpen, onClose }) {
+export default function AiAssistantModal({ isOpen = true, onClose }) {
   const [problem, setProblem] = useState('');
   const [location, setLocation] = useState('');
   const [imageFile, setImageFile] = useState(null);
@@ -13,7 +13,8 @@ export default function AiAssistantModal({ isOpen, onClose }) {
   const [detectingLocation, setDetectingLocation] = useState(false);
   const navigate = useNavigate();
 
-  if (!isOpen) return null;
+  // If explicitly passed false, hide; otherwise render if mounted
+  if (isOpen === false) return null;
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -102,8 +103,8 @@ export default function AiAssistantModal({ isOpen, onClose }) {
       style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.75)',
-        backdropFilter: 'blur(6px)',
+        backgroundColor: 'rgba(15, 23, 42, 0.65)',
+        backdropFilter: 'blur(4px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -114,23 +115,23 @@ export default function AiAssistantModal({ isOpen, onClose }) {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          backgroundColor: '#0f172a',
-          border: '1px solid rgba(255, 255, 255, 0.15)',
+          backgroundColor: '#ffffff',
+          border: '1px solid #e2e8f0',
           borderRadius: '16px',
           padding: '24px',
           width: '100%',
           maxWidth: '580px',
           maxHeight: '90vh',
           overflowY: 'auto',
-          color: '#f8fafc',
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
+          color: '#0f172a',
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.15)',
         }}
       >
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '1.4rem' }}>✨</span>
-            <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: '#38bdf8' }}>
+            <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: '#1e40af' }}>
               AI Smart Diagnosis & Nearby Match
             </h3>
           </div>
@@ -139,7 +140,7 @@ export default function AiAssistantModal({ isOpen, onClose }) {
             style={{
               background: 'transparent',
               border: 'none',
-              color: '#94a3b8',
+              color: '#64748b',
               fontSize: '1.3rem',
               cursor: 'pointer',
               padding: '4px 8px',
@@ -149,7 +150,7 @@ export default function AiAssistantModal({ isOpen, onClose }) {
           </button>
         </div>
 
-        <p style={{ margin: '0 0 16px 0', fontSize: '0.88rem', color: '#94a3b8' }}>
+        <p style={{ margin: '0 0 16px 0', fontSize: '0.88rem', color: '#64748b' }}>
           Upload a photo or describe the issue. Our AI detects the repair need, estimates prices, and ranks the nearest specialist providers.
         </p>
 
@@ -157,12 +158,12 @@ export default function AiAssistantModal({ isOpen, onClose }) {
         <form onSubmit={handleAnalyze} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {/* Image Upload Area */}
           <div>
-            <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#cbd5e1', display: 'block', marginBottom: '6px' }}>
+            <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '6px' }}>
               Upload Photo of the Issue (Optional)
             </label>
 
             {imagePreview ? (
-              <div style={{ position: 'relative', width: '100%', maxHeight: '200px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #38bdf8' }}>
+              <div style={{ position: 'relative', width: '100%', maxHeight: '200px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #2563eb' }}>
                 <img src={imagePreview} alt="Preview" style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
                 <button
                   type="button"
@@ -171,7 +172,7 @@ export default function AiAssistantModal({ isOpen, onClose }) {
                     position: 'absolute',
                     top: '8px',
                     right: '8px',
-                    backgroundColor: 'rgba(239, 68, 68, 0.85)',
+                    backgroundColor: '#ef4444',
                     color: '#fff',
                     border: 'none',
                     borderRadius: '50%',
@@ -192,15 +193,15 @@ export default function AiAssistantModal({ isOpen, onClose }) {
                   alignItems: 'center',
                   justifyContent: 'center',
                   padding: '16px',
-                  borderRadius: '8px',
-                  backgroundColor: '#1e293b',
-                  border: '2px dashed rgba(56, 189, 248, 0.4)',
+                  borderRadius: '10px',
+                  backgroundColor: '#f8fafc',
+                  border: '2px dashed #93c5fd',
                   cursor: 'pointer',
                   gap: '6px',
                 }}
               >
                 <span style={{ fontSize: '1.8rem' }}>📸</span>
-                <span style={{ fontSize: '0.85rem', color: '#38bdf8', fontWeight: 500 }}>
+                <span style={{ fontSize: '0.85rem', color: '#2563eb', fontWeight: 600 }}>
                   Click to select or capture image
                 </span>
                 <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Supports JPG, PNG, WEBP</span>
@@ -216,8 +217,8 @@ export default function AiAssistantModal({ isOpen, onClose }) {
 
           {/* Problem Description */}
           <div>
-            <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#cbd5e1' }}>
-              Describe the problem {!imageFile && <span style={{ color: '#f87171' }}>*</span>}
+            <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#334155' }}>
+              Describe the problem {!imageFile && <span style={{ color: '#ef4444' }}>*</span>}
             </label>
             <textarea
               rows="2"
@@ -227,15 +228,16 @@ export default function AiAssistantModal({ isOpen, onClose }) {
               onChange={(e) => setProblem(e.target.value)}
               style={{
                 width: '100%',
-                padding: '10px',
+                padding: '10px 12px',
                 borderRadius: '8px',
-                backgroundColor: '#1e293b',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                color: '#fff',
+                backgroundColor: '#ffffff',
+                border: '1.5px solid #cbd5e1',
+                color: '#0f172a',
                 fontSize: '0.9rem',
                 marginTop: '6px',
                 boxSizing: 'border-box',
                 resize: 'vertical',
+                outline: 'none',
               }}
             />
           </div>
@@ -243,7 +245,7 @@ export default function AiAssistantModal({ isOpen, onClose }) {
           {/* Location with Auto-Detect */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#cbd5e1' }}>
+              <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#334155' }}>
                 Your City / Location
               </label>
               <button
@@ -253,8 +255,9 @@ export default function AiAssistantModal({ isOpen, onClose }) {
                 style={{
                   background: 'transparent',
                   border: 'none',
-                  color: '#38bdf8',
+                  color: '#2563eb',
                   fontSize: '0.78rem',
+                  fontWeight: 600,
                   cursor: 'pointer',
                   textDecoration: 'underline',
                   padding: 0
@@ -270,20 +273,21 @@ export default function AiAssistantModal({ isOpen, onClose }) {
               onChange={(e) => setLocation(e.target.value)}
               style={{
                 width: '100%',
-                padding: '10px',
+                padding: '10px 12px',
                 borderRadius: '8px',
-                backgroundColor: '#1e293b',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                color: '#fff',
+                backgroundColor: '#ffffff',
+                border: '1.5px solid #cbd5e1',
+                color: '#0f172a',
                 fontSize: '0.9rem',
                 marginTop: '6px',
                 boxSizing: 'border-box',
+                outline: 'none',
               }}
             />
           </div>
 
           {error && (
-            <div style={{ color: '#f87171', fontSize: '0.85rem', padding: '4px 0' }}>
+            <div style={{ color: '#dc2626', fontSize: '0.85rem', padding: '4px 0', fontWeight: 500 }}>
               {error}
             </div>
           )}
@@ -297,7 +301,7 @@ export default function AiAssistantModal({ isOpen, onClose }) {
               color: '#ffffff',
               border: 'none',
               borderRadius: '8px',
-              fontWeight: 600,
+              fontWeight: 700,
               fontSize: '0.9rem',
               cursor: loading || (!problem.trim() && !imageFile) ? 'not-allowed' : 'pointer',
               display: 'flex',
@@ -305,6 +309,7 @@ export default function AiAssistantModal({ isOpen, onClose }) {
               justifyContent: 'center',
               gap: '8px',
               marginTop: '4px',
+              boxShadow: '0 2px 6px rgba(37, 99, 235, 0.25)',
             }}
           >
             {loading ? '🔍 Diagnosing & Ranking Providers...' : '✨ Find Top Ranked Providers'}
@@ -313,18 +318,18 @@ export default function AiAssistantModal({ isOpen, onClose }) {
 
         {/* AI Results & Ranked Providers */}
         {result && (
-          <div style={{ marginTop: '20px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '16px' }}>
+          <div style={{ marginTop: '20px', borderTop: '1px solid #e2e8f0', paddingTop: '16px' }}>
             <div
               style={{
-                backgroundColor: 'rgba(30, 41, 59, 0.7)',
-                border: '1px solid rgba(56, 189, 248, 0.25)',
-                borderRadius: '10px',
-                padding: '14px',
+                backgroundColor: '#eff6ff',
+                border: '1px solid #bfdbfe',
+                borderRadius: '12px',
+                padding: '16px',
                 marginBottom: '16px',
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontWeight: 700, color: '#38bdf8', fontSize: '0.95rem' }}>
+                <span style={{ fontWeight: 800, color: '#1e40af', fontSize: '1rem' }}>
                   {result.matchedCategoryName || 'General Service'}
                 </span>
                 <span
@@ -333,26 +338,26 @@ export default function AiAssistantModal({ isOpen, onClose }) {
                     color: getUrgencyColor(result.urgency),
                     border: `1px solid ${getUrgencyColor(result.urgency)}`,
                     fontSize: '0.72rem',
-                    padding: '2px 8px',
+                    padding: '3px 8px',
                     borderRadius: '12px',
-                    fontWeight: 700,
+                    fontWeight: 800,
                   }}
                 >
                   {result.urgency || 'MEDIUM'} URGENCY
                 </span>
               </div>
 
-              <p style={{ margin: '8px 0', fontSize: '0.88rem', color: '#e2e8f0', lineHeight: 1.4 }}>
+              <p style={{ margin: '8px 0', fontSize: '0.88rem', color: '#334155', lineHeight: 1.5 }}>
                 {result.assistantMessage}
               </p>
 
-              <div style={{ fontSize: '0.85rem', color: '#34d399', fontWeight: 600 }}>
+              <div style={{ fontSize: '0.88rem', color: '#16a34a', fontWeight: 700 }}>
                 Est. Cost Range: ₹{result.estimatedMinCost} - ₹{result.estimatedMaxCost}
               </div>
             </div>
 
             {/* Providers List */}
-            <h4 style={{ margin: '0 0 10px 0', fontSize: '0.92rem', color: '#cbd5e1' }}>
+            <h4 style={{ margin: '0 0 10px 0', fontSize: '0.92rem', color: '#334155', fontWeight: 700 }}>
               Top Match Ranked Providers:
             </h4>
 
@@ -365,25 +370,25 @@ export default function AiAssistantModal({ isOpen, onClose }) {
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      backgroundColor: '#1e293b',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      borderRadius: '8px',
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '10px',
                       padding: '12px 14px',
-                      position: 'relative',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                     }}
                   >
                     <div style={{ maxWidth: '72%' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                        <span style={{ fontWeight: 600, fontSize: '0.92rem', color: '#f8fafc' }}>
+                        <span style={{ fontWeight: 700, fontSize: '0.92rem', color: '#0f172a' }}>
                           {service.title || service.name}
                         </span>
 
                         {service.matchScore && (
                           <span
                             style={{
-                              backgroundColor: service.matchScore >= 80 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(56, 189, 248, 0.2)',
-                              color: service.matchScore >= 80 ? '#34d399' : '#38bdf8',
-                              border: `1px solid ${service.matchScore >= 80 ? 'rgba(16, 185, 129, 0.4)' : 'rgba(56, 189, 248, 0.4)'}`,
+                              backgroundColor: '#ecfdf5',
+                              color: '#059669',
+                              border: '1px solid #a7f3d0',
                               fontSize: '0.72rem',
                               padding: '1px 6px',
                               borderRadius: '10px',
@@ -396,12 +401,12 @@ export default function AiAssistantModal({ isOpen, onClose }) {
                       </div>
 
                       {service.matchReason && (
-                        <div style={{ fontSize: '0.75rem', color: '#93c5fd', marginTop: '3px' }}>
+                        <div style={{ fontSize: '0.76rem', color: '#2563eb', marginTop: '3px', fontWeight: 500 }}>
                           {service.matchReason}
                         </div>
                       )}
 
-                      <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '3px' }}>
+                      <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '3px' }}>
                         ₹{service.price} • Provider: {service.providerName || 'Local Verified Provider'}
                       </div>
                     </div>
@@ -413,14 +418,14 @@ export default function AiAssistantModal({ isOpen, onClose }) {
                       }}
                       style={{
                         padding: '8px 16px',
-                        backgroundColor: '#10b981',
+                        backgroundColor: '#16a34a',
                         color: '#fff',
                         border: 'none',
                         borderRadius: '6px',
                         cursor: 'pointer',
-                        fontWeight: 600,
+                        fontWeight: 700,
                         fontSize: '0.84rem',
-                        whiteSpace: 'nowrap'
+                        whiteSpace: 'nowrap',
                       }}
                     >
                       Book Now
@@ -429,7 +434,7 @@ export default function AiAssistantModal({ isOpen, onClose }) {
                 ))}
               </div>
             ) : (
-              <div style={{ fontSize: '0.82rem', color: '#94a3b8', textAlign: 'center', padding: '12px 0' }}>
+              <div style={{ fontSize: '0.82rem', color: '#64748b', textAlign: 'center', padding: '12px 0' }}>
                 No registered providers found in this category for your area yet.
               </div>
             )}

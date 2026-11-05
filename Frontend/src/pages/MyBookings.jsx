@@ -6,15 +6,15 @@ import ProviderReviews from '../components/ProviderReviews';
 import LiveTrackingMap from '../components/LiveTrackingMap';
 import PaymentModal from '../components/PaymentModal';
 
-// Status badge configuration helper
+// Status badge styling system
 const STATUS_CONFIG = {
-  ACCEPTED: { bg: 'rgba(34, 197, 94, 0.15)', color: '#4ade80', border: 'rgba(34, 197, 94, 0.3)' },
-  ON_THE_WAY: { bg: 'rgba(168, 85, 247, 0.15)', color: '#c084fc', border: 'rgba(168, 85, 247, 0.3)' },
-  COMPLETED: { bg: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: 'rgba(56, 189, 248, 0.3)' },
-  PAID: { bg: 'rgba(34, 197, 94, 0.2)', color: '#4ade80', border: 'rgba(34, 197, 94, 0.5)' },
-  PENDING: { bg: 'rgba(250, 204, 21, 0.15)', color: '#facc15', border: 'rgba(250, 204, 21, 0.3)' },
-  REJECTED: { bg: 'rgba(248, 113, 113, 0.15)', color: '#f87171', border: 'rgba(248, 113, 113, 0.3)' },
-  CANCELLED: { bg: 'rgba(248, 113, 113, 0.15)', color: '#f87171', border: 'rgba(248, 113, 113, 0.3)' },
+  ACCEPTED: { bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0' },
+  ON_THE_WAY: { bg: '#faf5ff', color: '#9333ea', border: '#e9d5ff' },
+  COMPLETED: { bg: '#eff6ff', color: '#2563eb', border: '#bfdbfe' },
+  PAID: { bg: '#ecfdf5', color: '#059669', border: '#a7f3d0' },
+  PENDING: { bg: '#fefce8', color: '#ca8a04', border: '#fef08a' },
+  REJECTED: { bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
+  CANCELLED: { bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
 };
 
 const TABS = ['ALL', 'PENDING', 'ACCEPTED', 'ON_THE_WAY', 'COMPLETED', 'PAID', 'CANCELLED', 'REJECTED'];
@@ -29,8 +29,7 @@ const StatusBadge = ({ status }) => {
         padding: '4px 12px',
         borderRadius: '9999px',
         fontSize: '12px',
-        fontWeight: '600',
-        letterSpacing: '0.025em',
+        fontWeight: '700',
         backgroundColor: config.bg,
         color: config.color,
         border: `1px solid ${config.border}`,
@@ -46,29 +45,29 @@ const StatusBadge = ({ status }) => {
 const AnalyticsOverview = ({ analytics = {} }) => {
   const safeAnalytics = analytics || {};
   return (
-    <div style={{ margin: '24px 0 32px 0' }}>
-      <h3 style={{ marginBottom: '16px', fontSize: '18px', color: '#f8fafc', fontWeight: '600' }}>
+    <div style={{ margin: '10px 0 24px 0' }}>
+      <h3 style={{ marginBottom: '14px', fontSize: '1.1rem', color: '#0f172a', fontWeight: '700' }}>
         📈 Business Overview
       </h3>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
         {[
-          { label: 'Total Revenue', value: `₹${Number(safeAnalytics.totalEarnings || 0).toFixed(2)}`, color: '#4ade80' },
-          { label: 'Completed Jobs', value: safeAnalytics.completedBookingsCount || 0, color: '#38bdf8' },
-          { label: 'Pending Requests', value: safeAnalytics.pendingBookingsCount || 0, color: '#facc15' },
-          { label: 'Total Orders', value: safeAnalytics.totalBookingsCount || 0, color: '#e2e8f0' },
+          { label: 'Total Revenue', value: `₹${Number(safeAnalytics.totalEarnings || 0).toFixed(2)}`, color: '#16a34a' },
+          { label: 'Completed Jobs', value: safeAnalytics.completedBookingsCount || 0, color: '#2563eb' },
+          { label: 'Pending Requests', value: safeAnalytics.pendingBookingsCount || 0, color: '#ca8a04' },
+          { label: 'Total Orders', value: safeAnalytics.totalBookingsCount || 0, color: '#0f172a' },
         ].map((item, idx) => (
           <div
             key={idx}
             style={{
-              backgroundColor: '#1e293b',
-              border: '1px solid #334155',
+              backgroundColor: '#ffffff',
+              border: '1px solid #e2e8f0',
               borderRadius: '12px',
               padding: '16px 20px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
             }}
           >
-            <p style={{ margin: 0, color: '#94a3b8', fontSize: '13px', fontWeight: '500' }}>{item.label}</p>
-            <h2 style={{ margin: '8px 0 0 0', color: item.color, fontSize: '24px', fontWeight: '700' }}>
+            <p style={{ margin: 0, color: '#64748b', fontSize: '13px', fontWeight: '500' }}>{item.label}</p>
+            <h2 style={{ margin: '6px 0 0 0', color: item.color, fontSize: '1.5rem', fontWeight: '800' }}>
               {item.value}
             </h2>
           </div>
@@ -84,10 +83,10 @@ const TabFilters = ({ tabs = [], activeTab, onSelectTab, counts = {} }) => (
     style={{
       display: 'flex',
       gap: '8px',
-      margin: '24px 0',
+      margin: '20px 0',
       flexWrap: 'wrap',
-      borderBottom: '1px solid #334155',
-      paddingBottom: '16px',
+      borderBottom: '1px solid #e2e8f0',
+      paddingBottom: '14px',
     }}
   >
     {tabs.map((tab) => {
@@ -103,14 +102,14 @@ const TabFilters = ({ tabs = [], activeTab, onSelectTab, counts = {} }) => (
           onClick={() => onSelectTab(tab)}
           style={{
             padding: '8px 16px',
-            backgroundColor: active ? '#2563eb' : '#1e293b',
-            color: active ? '#ffffff' : '#94a3b8',
-            border: active ? '1px solid #3b82f6' : '1px solid #334155',
+            backgroundColor: active ? '#2563eb' : '#ffffff',
+            color: active ? '#ffffff' : '#64748b',
+            border: active ? '1px solid #2563eb' : '1px solid #e2e8f0',
             borderRadius: '20px',
             cursor: 'pointer',
-            fontWeight: active ? '600' : '500',
+            fontWeight: active ? '700' : '500',
             fontSize: '13px',
-            transition: 'all 0.2s ease',
+            transition: 'all 0.15s ease',
           }}
         >
           {tab} {count > 0 && `(${count})`}
@@ -132,7 +131,6 @@ const BookingCard = ({
 }) => {
   const status = booking.status ? String(booking.status).toUpperCase() : 'PENDING';
 
-  // Safely resolve customer latitude and longitude from booking object
   const lat = booking.customerLatitude ?? booking.customerLat ?? booking.latitude;
   const lng = booking.customerLongitude ?? booking.customerLng ?? booking.longitude;
   const customerLocation = (lat && lng) ? { lat: Number(lat), lng: Number(lng) } : null;
@@ -140,33 +138,33 @@ const BookingCard = ({
   return (
     <div
       style={{
-        border: '1px solid #334155',
-        borderRadius: '12px',
+        border: '1px solid #e2e8f0',
+        borderRadius: '14px',
         padding: '20px',
-        backgroundColor: '#1e293b',
+        backgroundColor: '#ffffff',
         display: 'flex',
         flexDirection: 'column',
-        gap: '16px',
-        transition: 'border-color 0.2s ease',
+        gap: '14px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
         <div style={{ flex: '1 1 300px' }}>
-          <h3 style={{ margin: '0 0 8px 0', color: '#f8fafc', fontSize: '18px' }}>
+          <h3 style={{ margin: '0 0 8px 0', color: '#0f172a', fontSize: '18px', fontWeight: '700' }}>
             {booking.serviceTitle || `Service #${booking.serviceId || booking.id}`}
           </h3>
-          <p style={{ margin: '4px 0', color: '#cbd5e1', fontSize: '14px' }}>
-            <strong>Date & Time:</strong> {booking.bookingDate ? new Date(booking.bookingDate).toLocaleString() : 'N/A'}
+          <p style={{ margin: '4px 0', color: '#475569', fontSize: '14px' }}>
+            <strong style={{ color: '#0f172a' }}>Date & Time:</strong> {booking.bookingDate ? new Date(booking.bookingDate).toLocaleString() : 'N/A'}
           </p>
-          <p style={{ margin: '4px 0', color: '#cbd5e1', fontSize: '14px' }}>
-            <strong>Address:</strong> {booking.address || 'Not Provided'}
+          <p style={{ margin: '4px 0', color: '#475569', fontSize: '14px' }}>
+            <strong style={{ color: '#0f172a' }}>Address:</strong> {booking.address || 'Not Provided'}
           </p>
           {booking.notes && (
-            <p style={{ margin: '6px 0 0 0', color: '#94a3b8', fontSize: '13px' }}>
+            <p style={{ margin: '6px 0 0 0', color: '#64748b', fontSize: '13px' }}>
               <strong>Notes:</strong> {booking.notes}
             </p>
           )}
-          <p style={{ margin: '8px 0 0 0', fontSize: '13px', color: '#94a3b8' }}>
+          <p style={{ margin: '8px 0 0 0', fontSize: '13px', color: '#64748b' }}>
             {isProvider ? `Customer: ${booking.customerName || 'N/A'}` : `Provider: ${booking.providerName || 'N/A'}`}
           </p>
         </div>
@@ -179,13 +177,13 @@ const BookingCard = ({
             onClick={() => onOpenDetails(booking)}
             style={{
               padding: '6px 14px',
-              backgroundColor: '#0f172a',
-              color: '#e2e8f0',
-              border: '1px solid #334155',
-              borderRadius: '6px',
+              backgroundColor: '#f8fafc',
+              color: '#334155',
+              border: '1px solid #cbd5e1',
+              borderRadius: '8px',
               fontSize: '13px',
               cursor: 'pointer',
-              fontWeight: '500',
+              fontWeight: '600',
             }}
           >
             👁️ Details
@@ -235,7 +233,7 @@ const BookingCard = ({
               onClick={() => onStatusUpdate(booking.id, 'ON_THE_WAY')}
               style={{
                 padding: '6px 14px',
-                backgroundColor: '#a855f7',
+                backgroundColor: '#9333ea',
                 color: '#fff',
                 border: 'none',
                 borderRadius: '6px',
@@ -255,7 +253,7 @@ const BookingCard = ({
               onClick={() => onStatusUpdate(booking.id, 'COMPLETED')}
               style={{
                 padding: '6px 14px',
-                backgroundColor: '#0284c7',
+                backgroundColor: '#2563eb',
                 color: '#fff',
                 border: 'none',
                 borderRadius: '6px',
@@ -276,9 +274,9 @@ const BookingCard = ({
               onClick={() => onCancel(booking.id)}
               style={{
                 padding: '6px 14px',
-                backgroundColor: '#dc2626',
-                color: '#fff',
-                border: 'none',
+                backgroundColor: '#fef2f2',
+                color: '#dc2626',
+                border: '1px solid #fecaca',
                 borderRadius: '6px',
                 fontSize: '13px',
                 fontWeight: '600',
@@ -295,16 +293,16 @@ const BookingCard = ({
               type="button"
               onClick={() => onOpenPayment(booking)}
               style={{
-                padding: '6px 14px',
-                backgroundColor: '#22c55e',
+                padding: '8px 16px',
+                backgroundColor: '#16a34a',
                 color: '#ffffff',
                 border: 'none',
-                borderRadius: '6px',
+                borderRadius: '8px',
                 fontSize: '13px',
-                fontWeight: '600',
+                fontWeight: '700',
                 cursor: 'pointer',
                 marginTop: '4px',
-                boxShadow: '0 2px 4px rgba(34, 197, 94, 0.3)',
+                boxShadow: '0 2px 6px rgba(22, 163, 74, 0.3)',
               }}
             >
               💳 Pay Now
@@ -317,10 +315,10 @@ const BookingCard = ({
               onClick={() => onOpenReview(booking)}
               style={{
                 padding: '6px 14px',
-                backgroundColor: isReviewed ? '#16a34a' : '#eab308',
-                color: isReviewed ? '#fff' : '#0f172a',
+                backgroundColor: isReviewed ? '#f0fdf4' : '#fefce8',
+                color: isReviewed ? '#16a34a' : '#ca8a04',
+                border: isReviewed ? '1px solid #bbf7d0' : '1px solid #fef08a',
                 fontWeight: '600',
-                border: 'none',
                 borderRadius: '6px',
                 cursor: 'pointer',
                 fontSize: '13px',
@@ -335,9 +333,9 @@ const BookingCard = ({
             <span
               style={{
                 padding: '4px 10px',
-                backgroundColor: 'rgba(34, 197, 94, 0.2)',
-                color: '#4ade80',
-                border: '1px solid rgba(34, 197, 94, 0.4)',
+                backgroundColor: '#f0fdf4',
+                color: '#16a34a',
+                border: '1px solid #bbf7d0',
                 borderRadius: '6px',
                 fontSize: '12px',
                 fontWeight: '600',
@@ -350,7 +348,6 @@ const BookingCard = ({
         </div>
       </div>
 
-      {/* Live Map Tracking view with customerLocation passed */}
       {status === 'ON_THE_WAY' && LiveTrackingMap && (
         <LiveTrackingMap
           bookingId={booking.id}
@@ -378,7 +375,7 @@ const BookingDetailsModal = ({ booking = {}, isProvider, onClose }) => {
       style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: 'rgba(15, 23, 42, 0.6)',
         backdropFilter: 'blur(4px)',
         display: 'flex',
         alignItems: 'center',
@@ -390,58 +387,58 @@ const BookingDetailsModal = ({ booking = {}, isProvider, onClose }) => {
     >
       <div
         style={{
-          backgroundColor: '#1e293b',
-          border: '1px solid #334155',
-          borderRadius: '12px',
+          backgroundColor: '#ffffff',
+          border: '1px solid #e2e8f0',
+          borderRadius: '16px',
           padding: '28px',
           maxWidth: '520px',
           width: '100%',
-          color: '#f8fafc',
-          boxShadow: '0 20px 25px -5px rgba(0,0,0,0.5)',
+          color: '#0f172a',
+          boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h3 style={{ margin: 0, fontSize: '20px' }}>Booking #{booking.id || 'N/A'}</h3>
+          <h3 style={{ margin: 0, fontSize: '20px', fontWeight: '700' }}>Booking #{booking.id || 'N/A'}</h3>
           <StatusBadge status={booking.status} />
         </div>
 
-        <hr style={{ borderColor: '#334155', margin: '16px 0' }} />
+        <hr style={{ borderColor: '#e2e8f0', margin: '16px 0' }} />
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '14px', color: '#cbd5e1' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '14px', color: '#475569' }}>
           <p style={{ margin: 0 }}>
-            <strong style={{ color: '#f8fafc' }}>Service:</strong> {booking.serviceTitle || `Service #${booking.serviceId}`}
+            <strong style={{ color: '#0f172a' }}>Service:</strong> {booking.serviceTitle || `Service #${booking.serviceId}`}
           </p>
           <p style={{ margin: 0 }}>
-            <strong style={{ color: '#f8fafc' }}>Scheduled Date:</strong> {booking.bookingDate ? new Date(booking.bookingDate).toLocaleString() : 'N/A'}
+            <strong style={{ color: '#0f172a' }}>Scheduled Date:</strong> {booking.bookingDate ? new Date(booking.bookingDate).toLocaleString() : 'N/A'}
           </p>
           <p style={{ margin: 0 }}>
-            <strong style={{ color: '#f8fafc' }}>Service Address:</strong> {booking.address || 'N/A'}
+            <strong style={{ color: '#0f172a' }}>Service Address:</strong> {booking.address || 'N/A'}
           </p>
 
-          <hr style={{ borderColor: '#334155', margin: '4px 0' }} />
+          <hr style={{ borderColor: '#e2e8f0', margin: '4px 0' }} />
 
           {isProvider ? (
             <>
               <p style={{ margin: 0 }}>
-                <strong style={{ color: '#f8fafc' }}>Customer Name:</strong> {booking.customerName || 'N/A'}
+                <strong style={{ color: '#0f172a' }}>Customer Name:</strong> {booking.customerName || 'N/A'}
               </p>
               <p style={{ margin: 0 }}>
-                <strong style={{ color: '#f8fafc' }}>Customer Email:</strong> {booking.customerEmail || 'N/A'}
+                <strong style={{ color: '#0f172a' }}>Customer Email:</strong> {booking.customerEmail || 'N/A'}
               </p>
               <p style={{ margin: 0 }}>
-                <strong style={{ color: '#f8fafc' }}>Customer Phone:</strong> {booking.customerPhone || 'N/A'}
+                <strong style={{ color: '#0f172a' }}>Customer Phone:</strong> {booking.customerPhone || 'N/A'}
               </p>
             </>
           ) : (
             <p style={{ margin: 0 }}>
-              <strong style={{ color: '#f8fafc' }}>Provider Name:</strong> {booking.providerName || 'N/A'}
+              <strong style={{ color: '#0f172a' }}>Provider Name:</strong> {booking.providerName || 'N/A'}
             </p>
           )}
 
           {booking.notes && (
-            <p style={{ margin: '4px 0 0 0', color: '#94a3b8' }}>
-              <strong style={{ color: '#f8fafc' }}>Special Notes:</strong> {booking.notes}
+            <p style={{ margin: '4px 0 0 0', color: '#64748b' }}>
+              <strong style={{ color: '#0f172a' }}>Special Notes:</strong> {booking.notes}
             </p>
           )}
         </div>
@@ -456,7 +453,7 @@ const BookingDetailsModal = ({ booking = {}, isProvider, onClose }) => {
             backgroundColor: '#2563eb',
             color: '#fff',
             border: 'none',
-            borderRadius: '6px',
+            borderRadius: '8px',
             fontWeight: '600',
             cursor: 'pointer',
             fontSize: '14px',
@@ -569,10 +566,13 @@ const MyBookings = () => {
   }, [bookings, activeTab]);
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto', color: '#f8fafc', padding: '20px' }}>
-      <h2 style={{ fontSize: '28px', fontWeight: '700', marginBottom: '20px' }}>
+    <div style={{ maxWidth: '1000px', margin: '0 auto', color: '#0f172a' }}>
+      <h2 style={{ fontSize: '1.65rem', fontWeight: '800', marginBottom: '8px', color: '#0f172a' }}>
         {isProvider ? 'Provider Dashboard' : 'My Bookings'}
       </h2>
+      <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '0 0 20px 0' }}>
+        {isProvider ? 'Manage incoming job orders and fulfillment status' : 'Track and manage your scheduled service reservations'}
+      </p>
 
       {/* Provider Business Analytics Summary */}
       {isProvider && analytics && <AnalyticsOverview analytics={analytics} />}
@@ -581,7 +581,7 @@ const MyBookings = () => {
       {isProvider && ProviderReviews && <ProviderReviews />}
 
       {isProvider && (
-        <h3 style={{ marginTop: '32px', fontSize: '20px', fontWeight: '600' }}>
+        <h3 style={{ marginTop: '28px', fontSize: '1.2rem', fontWeight: '700', color: '#0f172a' }}>
           Incoming Booking Requests
         </h3>
       )}
@@ -589,9 +589,9 @@ const MyBookings = () => {
       {error && (
         <div
           style={{
-            color: '#f87171',
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
+            color: '#dc2626',
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
             padding: '12px 16px',
             borderRadius: '8px',
             margin: '16px 0',
@@ -614,15 +614,19 @@ const MyBookings = () => {
 
       {/* Main Content Area */}
       {loading ? (
-        <p style={{ color: '#94a3b8', fontStyle: 'italic', margin: '30px 0' }}>Loading bookings...</p>
+        <p style={{ color: '#64748b', fontStyle: 'italic', margin: '30px 0' }}>Loading bookings...</p>
       ) : filteredBookings.length === 0 ? (
-        <p style={{ color: '#94a3b8', fontStyle: 'italic', margin: '30px 0' }}>
-          {bookings.length === 0
-            ? 'No bookings found.'
-            : `No bookings found with status "${activeTab}".`}
-        </p>
+        <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '40px 20px', textAlign: 'center', marginTop: '16px' }}>
+          <span style={{ fontSize: '2.5rem', display: 'block', marginBottom: '10px' }}>📋</span>
+          <h3 style={{ margin: '0 0 6px 0', color: '#0f172a', fontSize: '1.1rem', fontWeight: '700' }}>No Bookings Found</h3>
+          <p style={{ color: '#64748b', fontSize: '0.88rem', margin: 0 }}>
+            {bookings.length === 0
+              ? 'You have not booked any services yet. Check out the Browse Services tab!'
+              : `No bookings found matching status "${activeTab}".`}
+          </p>
+        </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {filteredBookings.map((booking) => {
             if (!booking) return null;
             const isReviewed =
