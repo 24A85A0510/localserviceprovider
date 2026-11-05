@@ -22,6 +22,16 @@ public class ServiceEntity extends BaseEntity {
 
     private String location;
 
+    // --- Inspection & Distance Surcharge Fields ---
+    @Column(name = "inspection_fee", nullable = false)
+    private Double inspectionFee = 99.0;
+
+    @Column(name = "free_distance_km", nullable = false)
+    private Double freeDistanceKm = 3.0;
+
+    @Column(name = "per_km_rate", nullable = false)
+    private Double perKmRate = 12.0;
+
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false; // Soft-delete flag
 
@@ -69,6 +79,10 @@ public class ServiceEntity extends BaseEntity {
         this.id = id;
     }
 
+    public String title() {
+        return title;
+    }
+
     public String getTitle() {
         return title;
     }
@@ -99,6 +113,30 @@ public class ServiceEntity extends BaseEntity {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public Double getInspectionFee() {
+        return inspectionFee;
+    }
+
+    public void setInspectionFee(Double inspectionFee) {
+        this.inspectionFee = inspectionFee;
+    }
+
+    public Double getFreeDistanceKm() {
+        return freeDistanceKm;
+    }
+
+    public void setFreeDistanceKm(Double freeDistanceKm) {
+        this.freeDistanceKm = freeDistanceKm;
+    }
+
+    public Double getPerKmRate() {
+        return perKmRate;
+    }
+
+    public void setPerKmRate(Double perKmRate) {
+        this.perKmRate = perKmRate;
     }
 
     // --- SOFT DELETE GETTER & SETTER ---

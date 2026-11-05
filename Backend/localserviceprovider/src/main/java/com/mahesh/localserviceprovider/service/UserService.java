@@ -3,6 +3,8 @@ package com.mahesh.localserviceprovider.service;
 import com.mahesh.localserviceprovider.dto.ForgotPasswordRequest;
 import com.mahesh.localserviceprovider.dto.LoginRequestDTO;
 import com.mahesh.localserviceprovider.dto.LoginResponseDTO;
+import com.mahesh.localserviceprovider.dto.MobileOtpRequestDTO;
+import com.mahesh.localserviceprovider.dto.MobileResetPasswordDTO;
 import com.mahesh.localserviceprovider.dto.ResetPasswordRequest;
 import com.mahesh.localserviceprovider.dto.UserRequestDTO;
 import com.mahesh.localserviceprovider.dto.UserResponseDTO;
@@ -34,6 +36,9 @@ public class UserService {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private SmsService smsService;
+
     public List<UserResponseDTO> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(this::convertToResponseDTO)
@@ -53,7 +58,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
         user.setPhone(requestDTO.getPhone() != null ? requestDTO.getPhone().trim() : null);
         user.setRole(requestDTO.getRole());
-        user.setProfilePic(requestDTO.getProfilePic()); // Save profilePic on creation
+        user.setProfilePic(requestDTO.getProfilePic());
 
         User savedUser = userRepository.save(user);
         return convertToResponseDTO(savedUser);
@@ -143,51 +148,102 @@ public class UserService {
     // --- FORGOT PASSWORD & OTP WORKFLOW (EXACT EMAIL + PHONE MATCH) ---
     // =========================================================================
 
-    // 1. Generate & Save 6-digit OTP & Dispatch Real Email
     @Transactional
     public void generateAndSendOtp(ForgotPasswordRequest request) {
         User user = userRepository.findByEmailAndPhone(request.getEmail().trim(), request.getPhone().trim())
                 .orElseThrow(() -> new IllegalArgumentException("No account found matching this email and phone combination."));
 
-        // Generate a random 6-digit OTP (100000 to 999999)
         String otp = String.format("%06d", new Random().nextInt(900000) + 100000);
 
-        // Set OTP and 10-minute expiry time
         user.setResetOtp(otp);
         user.setOtpExpiryTime(LocalDateTime.now().plusMinutes(10));
         userRepository.save(user);
 
-        // Console logger for local inspection
         System.out.println("==========================================");
         System.out.println("🔐 RESET OTP FOR [" + user.getEmail() + "] IS: " + otp);
         System.out.println("==========================================");
 
-        // Dispatch real email via Gmail SMTP
         emailService.sendOtpEmail(user.getEmail(), otp);
     }
 
-    // 2. Verify OTP & Update Password
     @Transactional
     public void verifyOtpAndResetPassword(ResetPasswordRequest request) {
         User user = userRepository.findByEmailAndPhone(request.getEmail().trim(), request.getPhone().trim())
                 .orElseThrow(() -> new IllegalArgumentException("No account found matching this email and phone combination."));
 
-        // Check if OTP exists and matches
         if (user.getResetOtp() == null || !user.getResetOtp().trim().equals(request.getOtp().trim())) {
             throw new IllegalArgumentException("Invalid OTP provided.");
         }
 
-        // Check if OTP has expired
         if (user.getOtpExpiryTime() == null || user.getOtpExpiryTime().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("OTP has expired. Please request a new one.");
         }
 
-        // Hash new password and clear OTP fields
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         user.setResetOtp(null);
         user.setOtpExpiryTime(null);
 
         userRepository.save(user);
+    }
+
+    // =========================================================================
+    // --- FORGOT PASSWORD VIA MOBILE NUMBER ONLY (HANDLES DUPLICATES + REAL SMS) ---
+    // =========================================================================
+
+    @Transactional
+    public void generateAndSendOtpByMobile(MobileOtpRequestDTO request) {
+        String cleanPhone = request.getPhone().trim();
+
+        List<User> users = userRepository.findAllByPhone(cleanPhone);
+        if (users == null || users.isEmpty()) {
+            throw new IllegalArgumentException("No account registered with phone number: " + cleanPhone);
+        }
+
+        // Generate a random 6-digit numeric OTP (100000 to 999999)
+        String otp = String.format("%06d", new Random().nextInt(900000) + 100000);
+        LocalDateTime expiry = LocalDateTime.now().plusMinutes(5);
+
+        for (User user : users) {
+            user.setResetOtp(otp);
+            user.setOtpExpiryTime(expiry);
+        }
+        userRepository.saveAll(users);
+
+        System.out.println("=================================================");
+        System.out.println("📱 MOBILE RESET OTP FOR [" + cleanPhone + "] IS: " + otp);
+        System.out.println("=================================================");
+
+        // Dispatches the actual SMS message to the phone number
+        smsService.sendOtpSms(cleanPhone, otp);
+    }
+
+    @Transactional
+    public void verifyOtpAndResetPasswordByMobile(MobileResetPasswordDTO request) {
+        String cleanPhone = request.getPhone().trim();
+        String cleanOtp = request.getOtp().trim();
+
+        List<User> users = userRepository.findAllByPhone(cleanPhone);
+        if (users == null || users.isEmpty()) {
+            throw new IllegalArgumentException("No account registered with phone number: " + cleanPhone);
+        }
+
+        User primaryUser = users.get(0);
+
+        if (primaryUser.getResetOtp() == null || !primaryUser.getResetOtp().equals(cleanOtp)) {
+            throw new IllegalArgumentException("Invalid OTP provided.");
+        }
+
+        if (primaryUser.getOtpExpiryTime() == null || primaryUser.getOtpExpiryTime().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("OTP has expired. Please request a new one.");
+        }
+
+        String encodedPassword = passwordEncoder.encode(request.getNewPassword());
+        for (User user : users) {
+            user.setPassword(encodedPassword);
+            user.setResetOtp(null);
+            user.setOtpExpiryTime(null);
+        }
+        userRepository.saveAll(users);
     }
 
     private UserResponseDTO convertToResponseDTO(User user) {

@@ -97,6 +97,46 @@ public class BookingController {
         return ResponseEntity.ok(analytics);
     }
 
+    // PUT /api/bookings/{id}/propose-price - Provider quotes the total charges to customer
+    @PutMapping("/{id}/propose-price")
+    @PreAuthorize("hasAnyAuthority('ROLE_PROVIDER', 'PROVIDER')")
+    @Operation(summary = "Provider quotes service price and sends to customer for approval")
+    public ResponseEntity<?> proposePrice(
+            @PathVariable Long id,
+            @RequestParam("amount") Double amount,
+            Authentication authentication) {
+
+        String providerEmail = extractEmail(authentication);
+        if (providerEmail == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User authentication is missing or invalid.");
+        }
+
+        if (amount == null || amount <= 0) {
+            return ResponseEntity.badRequest().body("Amount must be greater than zero.");
+        }
+
+        BookingResponseDTO updated = bookingService.proposePrice(id, amount, providerEmail);
+        return ResponseEntity.ok(updated);
+    }
+
+    // PUT /api/bookings/{id}/respond-quote - Customer accepts or rejects the proposed quote
+    @PutMapping("/{id}/respond-quote")
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'CUSTOMER')")
+    @Operation(summary = "Customer responds to price quote (accept=true confirms, accept=false rejects)")
+    public ResponseEntity<?> respondToQuote(
+            @PathVariable Long id,
+            @RequestParam("accept") boolean accept,
+            Authentication authentication) {
+
+        String customerEmail = extractEmail(authentication);
+        if (customerEmail == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User authentication is missing or invalid.");
+        }
+
+        BookingResponseDTO updated = bookingService.customerRespondToQuote(id, accept, customerEmail);
+        return ResponseEntity.ok(updated);
+    }
+
     // PUT /api/bookings/{id}/status - Update booking status
     @PutMapping("/{id}/status")
     @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'CUSTOMER', 'ROLE_PROVIDER', 'PROVIDER')")

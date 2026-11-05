@@ -1,5 +1,6 @@
 package com.mahesh.localserviceprovider.service;
 
+import com.mahesh.localserviceprovider.dto.InspectionCostDTO;
 import com.mahesh.localserviceprovider.dto.ServiceDTO;
 import com.mahesh.localserviceprovider.model.Category;
 import com.mahesh.localserviceprovider.model.ServiceEntity;
@@ -8,6 +9,7 @@ import com.mahesh.localserviceprovider.repository.CategoryRepository;
 import com.mahesh.localserviceprovider.repository.ServiceRepository;
 import com.mahesh.localserviceprovider.repository.UserRepository;
 import com.mahesh.localserviceprovider.specification.ServiceSpecification;
+import com.mahesh.localserviceprovider.util.DistanceCalculator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -93,7 +95,6 @@ public class ServiceOfferingService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        // Uses specification to filter out soft-deleted services
         Specification<ServiceEntity> spec = ServiceSpecification.filterServices(null, null, null, null, null);
         Page<ServiceEntity> servicePage = serviceRepository.findAll(spec, pageable);
 
@@ -112,7 +113,6 @@ public class ServiceOfferingService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        // Uses specification to filter by category AND exclude soft-deleted services
         Specification<ServiceEntity> spec = ServiceSpecification.filterServices(null, null, categoryId, null, null);
         Page<ServiceEntity> servicePage = serviceRepository.findAll(spec, pageable);
 
@@ -141,7 +141,6 @@ public class ServiceOfferingService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        // Uses ServiceSpecification (applies isDeleted = false along with location filtering)
         Specification<ServiceEntity> spec = ServiceSpecification.filterServices(keyword, location, categoryId, minPrice, maxPrice);
         Page<ServiceEntity> servicePage = serviceRepository.findAll(spec, pageable);
 
@@ -168,7 +167,6 @@ public class ServiceOfferingService {
         ServiceEntity service = serviceRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Service not found with id: " + id));
 
-        // Validate that current authenticated user is the owner
         if (!service.getProvider().getEmail().equals(userEmail)) {
             throw new RuntimeException("Unauthorized: You can only delete services that you created.");
         }
@@ -182,7 +180,6 @@ public class ServiceOfferingService {
         ServiceEntity service = serviceRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Service not found with id: " + id));
 
-        // Validate that current authenticated user is the owner
         if (!service.getProvider().getEmail().equals(userEmail)) {
             throw new RuntimeException("Unauthorized: You can only restore services that you created.");
         }
@@ -191,6 +188,57 @@ public class ServiceOfferingService {
         ServiceEntity restored = serviceRepository.save(service);
 
         return mapToDTO(restored);
+    }
+
+    // =========================================================================
+    // --- DISTANCE-BASED INSPECTION & TRAVEL COST CALCULATION ---
+    // =========================================================================
+
+    public InspectionCostDTO calculateInspectionCost(
+            Long serviceId,
+            Double customerLat,
+            Double customerLng,
+            Double providerLat,
+            Double providerLng) {
+
+        ServiceEntity service = serviceRepository.findById(serviceId)
+                .orElseThrow(() -> new RuntimeException("Service not found with id: " + serviceId));
+
+        if (Boolean.TRUE.equals(service.getIsDeleted())) {
+            throw new RuntimeException("Service not found with id: " + serviceId);
+        }
+
+        // Default baseline coordinates if provider coordinates are not supplied
+        double pLat = (providerLat != null) ? providerLat : 16.5062;
+        double pLng = (providerLng != null) ? providerLng : 80.6480;
+
+        double cLat = (customerLat != null) ? customerLat : pLat;
+        double cLng = (customerLng != null) ? customerLng : pLng;
+
+        // 1. Calculate actual distance in KM
+        double distanceKm = DistanceCalculator.calculateDistanceKm(cLat, cLng, pLat, pLng);
+
+        // 2. Fetch rates from the ServiceEntity
+        double baseFee = (service.getInspectionFee() != null) ? service.getInspectionFee() : 99.0;
+        double freeKm = (service.getFreeDistanceKm() != null) ? service.getFreeDistanceKm() : 3.0;
+        double perKmRate = (service.getPerKmRate() != null) ? service.getPerKmRate() : 12.0;
+
+        // 3. Calculate billable distance & surcharge
+        double billableKm = DistanceCalculator.calculateBillableKm(distanceKm, freeKm);
+        double travelSurcharge = DistanceCalculator.calculateTravelSurcharge(billableKm, perKmRate);
+        double totalVisitingAmount = Math.round((baseFee + travelSurcharge) * 100.0) / 100.0;
+
+        return new InspectionCostDTO(
+                service.getId(),
+                service.getTitle(),
+                baseFee,
+                distanceKm,
+                freeKm,
+                billableKm,
+                perKmRate,
+                travelSurcharge,
+                totalVisitingAmount
+        );
     }
 
     private ServiceDTO mapToDTO(ServiceEntity service) {

@@ -1,5 +1,6 @@
 package com.mahesh.localserviceprovider.controller;
 
+import com.mahesh.localserviceprovider.dto.InspectionCostDTO;
 import com.mahesh.localserviceprovider.dto.ServiceDTO;
 import com.mahesh.localserviceprovider.service.ServiceOfferingService;
 import jakarta.validation.Valid;
@@ -73,6 +74,20 @@ public class ServiceController {
     @GetMapping("/{id}")
     public ResponseEntity<ServiceDTO> getServiceById(@PathVariable Long id) {
         return ResponseEntity.ok(serviceOfferingService.getServiceById(id));
+    }
+
+    // --- DISTANCE-BASED INSPECTION & TRAVEL CHARGE ENDPOINT ---
+    @GetMapping("/{id}/calculate-inspection-cost")
+    public ResponseEntity<InspectionCostDTO> calculateInspectionCost(
+            @PathVariable Long id,
+            @RequestParam(required = false) Double customerLat,
+            @RequestParam(required = false) Double customerLng,
+            @RequestParam(required = false) Double providerLat,
+            @RequestParam(required = false) Double providerLng) {
+
+        InspectionCostDTO costDTO = serviceOfferingService.calculateInspectionCost(
+                id, customerLat, customerLng, providerLat, providerLng);
+        return ResponseEntity.ok(costDTO);
     }
 
     // --- UPDATE SERVICE WITH AUTH ---

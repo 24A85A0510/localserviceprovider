@@ -125,11 +125,12 @@ public class BookingService {
                 .count();
 
         long pendingCount = providerBookings.stream()
-                .filter(b -> b.getStatus() == BookingStatus.PENDING)
+                .filter(b -> b.getStatus() == BookingStatus.PENDING || b.getStatus() == BookingStatus.WAITING_APPROVAL)
                 .count();
 
+        // ONLY count bookings that have actually been paid
         double totalEarnings = providerBookings.stream()
-                .filter(b -> b.getStatus() == BookingStatus.COMPLETED || b.getStatus() == BookingStatus.PAID)
+                .filter(b -> "PAID".equalsIgnoreCase(b.getPaymentStatus()) || b.getStatus() == BookingStatus.PAID)
                 .mapToDouble(b -> b.getAmount() != null ? b.getAmount() :
                         ((b.getService() != null && b.getService().getPrice() != null) ? b.getService().getPrice() : 0.0))
                 .sum();
@@ -199,6 +200,74 @@ public class BookingService {
         return mapToDTO(updatedBooking);
     }
 
+    // --- 1. PROVIDER PROPOSES PRICE (SENDS QUOTE TO CUSTOMER) ---
+    @Transactional
+    public BookingResponseDTO proposePrice(Long bookingId, Double proposedAmount, String providerEmail) {
+        User provider = userRepository.findByEmail(providerEmail)
+                .orElseThrow(() -> new RuntimeException("Provider not found with email: " + providerEmail));
+
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found with id: " + bookingId));
+
+        // Ownership check: only the service provider assigned can quote
+        if (!booking.getService().getProvider().getId().equals(provider.getId())) {
+            throw new RuntimeException("Unauthorized: Only the assigned provider can update charges.");
+        }
+
+        booking.setAmount(proposedAmount);
+        booking.setStatus(BookingStatus.WAITING_APPROVAL);
+
+        Booking updatedBooking = bookingRepository.save(booking);
+
+        // 🔔 Alert Customer that a quote needs approval
+        User customer = booking.getCustomer();
+        if (customer != null) {
+            String message = String.format("Provider quoted ₹%.2f for '%s'. Please review and confirm.",
+                    proposedAmount, booking.getService().getTitle());
+            notificationRepository.save(new Notification(customer.getId(), message));
+        }
+
+        return mapToDTO(updatedBooking);
+    }
+
+    // --- 2. CUSTOMER REVIEWS & RESPONDS TO QUOTE (Accept -> CONFIRMED, Reject -> REJECTED) ---
+    @Transactional
+    public BookingResponseDTO customerRespondToQuote(Long bookingId, boolean accept, String customerEmail) {
+        User customer = userRepository.findByEmail(customerEmail)
+                .orElseThrow(() -> new RuntimeException("Customer not found with email: " + customerEmail));
+
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found with id: " + bookingId));
+
+        // Ownership check: only the customer who booked can respond
+        if (!booking.getCustomer().getId().equals(customer.getId())) {
+            throw new RuntimeException("Unauthorized: Only the booking owner can accept/reject quotes.");
+        }
+
+        if (booking.getStatus() != BookingStatus.WAITING_APPROVAL) {
+            throw new RuntimeException("Booking is not awaiting price approval.");
+        }
+
+        if (accept) {
+            booking.setStatus(BookingStatus.CONFIRMED);
+        } else {
+            booking.setStatus(BookingStatus.REJECTED);
+        }
+
+        Booking updatedBooking = bookingRepository.save(booking);
+
+        // 🔔 Alert Provider of customer decision
+        User provider = booking.getService().getProvider();
+        if (provider != null) {
+            String decision = accept ? "accepted the quote. Booking is confirmed!" : "rejected the proposed quote.";
+            String message = String.format("Customer %s %s for '%s'.",
+                    customer.getName(), decision, booking.getService().getTitle());
+            notificationRepository.save(new Notification(provider.getId(), message));
+        }
+
+        return mapToDTO(updatedBooking);
+    }
+
     // 💳 Process booking payment from Customer
     @Transactional
     public BookingResponseDTO processBookingPayment(Long bookingId, Double amount, String transactionId, String customerEmail) {
@@ -248,7 +317,7 @@ public class BookingService {
                 booking.getService().getTitle(),
                 booking.getBookingDate(),
                 booking.getAddress(),
-                null, // notes field if needed, or null
+                null,
                 booking.getStatus().name(),
                 isReviewed,
                 booking.getCustomerLatitude(),

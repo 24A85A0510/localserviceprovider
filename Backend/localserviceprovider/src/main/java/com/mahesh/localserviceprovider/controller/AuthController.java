@@ -2,6 +2,8 @@ package com.mahesh.localserviceprovider.controller;
 
 import com.mahesh.localserviceprovider.dto.ForgotPasswordRequest;
 import com.mahesh.localserviceprovider.dto.LoginRequestDTO;
+import com.mahesh.localserviceprovider.dto.MobileOtpRequestDTO;
+import com.mahesh.localserviceprovider.dto.MobileResetPasswordDTO;
 import com.mahesh.localserviceprovider.dto.ResetPasswordRequest;
 import com.mahesh.localserviceprovider.dto.UserRequestDTO;
 import com.mahesh.localserviceprovider.service.UserService;
@@ -49,6 +51,28 @@ public class AuthController {
     public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         try {
             userService.verifyOtpAndResetPassword(request);
+            return ResponseEntity.ok("Password reset successfully. You can now log in with your new password.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // --- MOBILE-ONLY FORGOT PASSWORD ENDPOINTS ---
+
+    @PostMapping("/forgot-password-mobile")
+    public ResponseEntity<?> requestOtpByMobile(@Valid @RequestBody MobileOtpRequestDTO request) {
+        try {
+            userService.generateAndSendOtpByMobile(request);
+            return ResponseEntity.ok("OTP sent to mobile number successfully.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/reset-password-mobile")
+    public ResponseEntity<?> resetPasswordByMobile(@Valid @RequestBody MobileResetPasswordDTO request) {
+        try {
+            userService.verifyOtpAndResetPasswordByMobile(request);
             return ResponseEntity.ok("Password reset successfully. You can now log in with your new password.");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
