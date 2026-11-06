@@ -11,9 +11,9 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
 
-  // --- DUAL FORGOT PASSWORD STATES ---
+  // Dual Forgot Password States
   const [isForgotMode, setIsForgotMode] = useState(false);
-  const [resetMethod, setResetMethod] = useState('EMAIL'); // 'EMAIL' or 'MOBILE'
+  const [resetMethod, setResetMethod] = useState('EMAIL');
   const [forgotStep, setForgotStep] = useState(1);
   const [forgotEmail, setForgotEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -27,11 +27,11 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleGoogleLogin = () => {
-    window.location.href = 'http://localhost:8080/oauth2/authorization/google';
+    window.location.href = `${import.meta.env.VITE_API_BASE_URL?.replace(/\/api\/?$/, '') || 'http://localhost:8080'}/oauth2/authorization/google`;
   };
 
   const handleGithubLogin = () => {
-    window.location.href = 'http://localhost:8080/oauth2/authorization/github';
+    window.location.href = `${import.meta.env.VITE_API_BASE_URL?.replace(/\/api\/?$/, '') || 'http://localhost:8080'}/oauth2/authorization/github`;
   };
 
   const parseJwt = (token) => {
@@ -118,7 +118,6 @@ const Login = () => {
     }
   };
 
-  // 1. Send OTP (Email or Mobile)
   const handleRequestOtp = async (e) => {
     e.preventDefault();
     setForgotError('');
@@ -150,7 +149,6 @@ const Login = () => {
     }
   };
 
-  // 2. Reset Password (Email or Mobile)
   const handleResetPassword = async (e) => {
     e.preventDefault();
     setForgotError('');
@@ -202,33 +200,33 @@ const Login = () => {
     <div className="login-page-root">
       <style>{`
         .login-page-root {
-          min-height: 100vh;
+          min-height: calc(100vh - 65px);
           width: 100%;
-          background: #f1f5f9;
+          background: #f8fafc;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 24px 16px;
+          padding: 32px 24px;
           box-sizing: border-box;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
         .login-shell {
           width: 100%;
-          max-width: 920px;
-          min-height: 580px;
+          max-width: 1100px;
+          min-height: 640px;
           background: #ffffff;
-          border-radius: 20px;
+          border-radius: 24px;
           box-shadow: 0 20px 45px -15px rgba(15, 23, 42, 0.12), 0 0 1px 1px rgba(15, 23, 42, 0.05);
           display: flex;
           overflow: hidden;
         }
 
         .login-banner-col {
-          flex: 1.1;
+          flex: 1.15;
           background: linear-gradient(145deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%);
           color: #ffffff;
-          padding: 40px 36px;
+          padding: 52px 46px;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
@@ -238,15 +236,15 @@ const Login = () => {
         .brand-header-row {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 14px;
         }
 
         .brand-icon-box {
-          width: 42px;
-          height: 42px;
+          width: 48px;
+          height: 48px;
           background: rgba(255, 255, 255, 0.2);
           border: 1px solid rgba(255, 255, 255, 0.35);
-          border-radius: 12px;
+          border-radius: 14px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -254,35 +252,36 @@ const Login = () => {
         }
 
         .brand-name-text {
-          font-size: 1.15rem;
-          font-weight: 700;
+          font-size: 1.35rem;
+          font-weight: 800;
           margin: 0;
           color: #ffffff;
+          letter-spacing: -0.3px;
         }
 
         .brand-subtext {
-          font-size: 0.75rem;
-          color: rgba(255, 255, 255, 0.8);
+          font-size: 0.82rem;
+          color: rgba(255, 255, 255, 0.85);
           margin: 2px 0 0 0;
         }
 
         .banner-content-body {
-          margin: 24px 0;
+          margin: 32px 0;
         }
 
         .banner-content-body h2 {
-          font-size: 1.7rem;
-          font-weight: 800;
+          font-size: 2.15rem;
+          font-weight: 900;
           line-height: 1.25;
-          margin: 0 0 12px 0;
+          margin: 0 0 14px 0;
           color: #ffffff;
         }
 
         .banner-content-body p {
-          font-size: 0.9rem;
-          line-height: 1.5;
-          color: rgba(255, 255, 255, 0.88);
-          margin: 0 0 18px 0;
+          font-size: 1.02rem;
+          line-height: 1.55;
+          color: rgba(255, 255, 255, 0.9);
+          margin: 0 0 24px 0;
         }
 
         .feature-bullets {
@@ -291,32 +290,32 @@ const Login = () => {
           margin: 0;
           display: flex;
           flex-direction: column;
-          gap: 10px;
+          gap: 12px;
         }
 
         .feature-bullets li {
           display: flex;
           align-items: center;
-          gap: 10px;
-          font-size: 0.86rem;
-          font-weight: 500;
+          gap: 12px;
+          font-size: 0.95rem;
+          font-weight: 600;
         }
 
         .bullet-tick {
-          width: 20px;
-          height: 20px;
+          width: 24px;
+          height: 24px;
           background: rgba(255, 255, 255, 0.22);
           border-radius: 50%;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          font-size: 0.75rem;
-          font-weight: 700;
+          font-size: 0.82rem;
+          font-weight: 800;
         }
 
         .banner-svg-holder {
           width: 100%;
-          max-height: 150px;
+          max-height: 170px;
           display: flex;
           justify-content: center;
           align-items: center;
@@ -325,15 +324,15 @@ const Login = () => {
 
         .banner-svg-holder svg {
           width: 100%;
-          max-width: 320px;
+          max-width: 360px;
           height: auto;
-          max-height: 140px;
+          max-height: 160px;
         }
 
         .login-form-col {
           flex: 1;
           background: #ffffff;
-          padding: 40px 36px;
+          padding: 48px 46px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -342,40 +341,40 @@ const Login = () => {
 
         .form-content-inner {
           width: 100%;
-          max-width: 360px;
+          max-width: 400px;
         }
 
         .form-title-head h2 {
-          font-size: 1.6rem;
-          font-weight: 700;
+          font-size: 1.85rem;
+          font-weight: 800;
           color: #0f172a;
           margin: 0 0 4px 0;
         }
 
         .form-title-head p {
-          font-size: 0.86rem;
+          font-size: 0.92rem;
           color: #64748b;
-          margin: 0 0 16px 0;
+          margin: 0 0 20px 0;
         }
 
         .role-switch-container {
           display: flex;
           background: #f1f5f9;
-          padding: 4px;
-          border-radius: 10px;
-          margin-bottom: 20px;
+          padding: 5px;
+          border-radius: 12px;
+          margin-bottom: 22px;
           gap: 4px;
         }
 
         .role-option-btn {
           flex: 1;
-          padding: 8px;
+          padding: 9px;
           background: transparent;
           border: none;
-          font-size: 0.82rem;
-          font-weight: 600;
+          font-size: 0.86rem;
+          font-weight: 700;
           color: #64748b;
-          border-radius: 7px;
+          border-radius: 9px;
           cursor: pointer;
           transition: all 0.2s ease;
         }
@@ -383,30 +382,29 @@ const Login = () => {
         .role-option-btn.active {
           background: #2563eb;
           color: #ffffff;
-          box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+          box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
         }
 
         .input-block {
-          margin-bottom: 14px;
+          margin-bottom: 16px;
         }
 
         .input-block label {
           display: block;
-          font-size: 0.82rem;
-          font-weight: 600;
+          font-size: 0.86rem;
+          font-weight: 700;
           color: #334155;
-          margin-bottom: 6px;
+          margin-bottom: 7px;
         }
 
         .input-box-wrapper {
           display: flex;
           align-items: center;
           border: 1.5px solid #cbd5e1;
-          border-radius: 10px;
+          border-radius: 12px;
           background: #ffffff !important;
-          background-color: #ffffff !important;
           overflow: hidden;
-          padding: 0 12px;
+          padding: 0 14px;
         }
 
         .input-box-wrapper:focus-within {
@@ -418,28 +416,23 @@ const Login = () => {
           width: 100%;
           border: none;
           outline: none;
-          background: #ffffff !important;
-          background-color: #ffffff !important;
-          padding: 10px 6px;
-          font-size: 0.9rem;
+          background: transparent !important;
+          padding: 12px 6px;
+          font-size: 0.95rem;
           color: #0f172a !important;
         }
 
-        .input-box-wrapper input:-webkit-autofill,
-        .input-box-wrapper input:-webkit-autofill:hover,
-        .input-box-wrapper input:-webkit-autofill:focus,
-        .input-box-wrapper input:-webkit-autofill:active {
+        .input-box-wrapper input:-webkit-autofill {
           -webkit-box-shadow: 0 0 0 40px #ffffff inset !important;
           -webkit-text-fill-color: #0f172a !important;
-          transition: background-color 5000s ease-in-out 0s;
         }
 
         .pwd-toggle-text {
           background: transparent;
           border: none;
           color: #2563eb;
-          font-size: 0.75rem;
-          font-weight: 600;
+          font-size: 0.82rem;
+          font-weight: 700;
           cursor: pointer;
         }
 
@@ -447,14 +440,14 @@ const Login = () => {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 16px;
-          font-size: 0.82rem;
+          margin-bottom: 20px;
+          font-size: 0.86rem;
         }
 
         .remember-checkbox-label {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: 8px;
           color: #64748b;
           cursor: pointer;
         }
@@ -463,7 +456,7 @@ const Login = () => {
           background: transparent;
           border: none;
           color: #2563eb;
-          font-weight: 600;
+          font-weight: 700;
           cursor: pointer;
           padding: 0;
         }
@@ -473,16 +466,16 @@ const Login = () => {
           background: #2563eb;
           color: #ffffff;
           border: none;
-          padding: 12px;
-          border-radius: 10px;
-          font-size: 0.92rem;
-          font-weight: 600;
+          padding: 13px;
+          border-radius: 12px;
+          font-size: 0.98rem;
+          font-weight: 700;
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 6px;
-          box-shadow: 0 4px 12px rgba(37, 99, 235, 0.28);
+          gap: 8px;
+          box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28);
           transition: background 0.2s;
         }
 
@@ -493,7 +486,7 @@ const Login = () => {
         .divider-label {
           position: relative;
           text-align: center;
-          margin: 18px 0;
+          margin: 22px 0;
         }
 
         .divider-label::before {
@@ -509,15 +502,15 @@ const Login = () => {
         .divider-label span {
           position: relative;
           background: #ffffff;
-          padding: 0 10px;
-          font-size: 0.78rem;
+          padding: 0 12px;
+          font-size: 0.82rem;
           color: #94a3b8;
         }
 
         .oauth-btn-grid {
           display: flex;
-          gap: 10px;
-          margin-bottom: 16px;
+          gap: 12px;
+          margin-bottom: 20px;
         }
 
         .oauth-btn {
@@ -525,15 +518,16 @@ const Login = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 8px;
-          padding: 10px;
+          gap: 10px;
+          padding: 11px;
           border: 1.5px solid #e2e8f0;
           background: #ffffff;
-          border-radius: 10px;
-          font-size: 0.84rem;
-          font-weight: 600;
+          border-radius: 12px;
+          font-size: 0.88rem;
+          font-weight: 700;
           color: #334155;
           cursor: pointer;
+          transition: background 0.15s ease;
         }
 
         .oauth-btn:hover {
@@ -542,22 +536,22 @@ const Login = () => {
 
         .bottom-switch-link {
           text-align: center;
-          font-size: 0.85rem;
+          font-size: 0.9rem;
           color: #64748b;
           margin: 0;
         }
 
         .bottom-switch-link a {
           color: #2563eb;
-          font-weight: 600;
+          font-weight: 700;
           text-decoration: none;
         }
 
         .msg-alert {
-          padding: 10px 12px;
-          border-radius: 8px;
-          font-size: 0.84rem;
-          margin-bottom: 14px;
+          padding: 11px 14px;
+          border-radius: 10px;
+          font-size: 0.88rem;
+          margin-bottom: 16px;
         }
 
         .msg-alert.err {
@@ -574,25 +568,26 @@ const Login = () => {
 
         .return-login-btn {
           width: 100%;
-          margin-top: 14px;
+          margin-top: 16px;
           background: transparent;
           border: none;
           color: #64748b;
-          font-weight: 600;
+          font-weight: 700;
           cursor: pointer;
-          font-size: 0.84rem;
+          font-size: 0.88rem;
         }
 
-        @media (max-width: 840px) {
+        @media (max-width: 900px) {
           .login-shell {
             flex-direction: column;
-            max-width: 440px;
+            max-width: 480px;
+            min-height: auto;
           }
           .login-banner-col {
             display: none;
           }
           .login-form-col {
-            padding: 32px 24px;
+            padding: 40px 28px;
           }
         }
       `}</style>
@@ -602,7 +597,7 @@ const Login = () => {
         <div className="login-banner-col">
           <div className="brand-header-row">
             <div className="brand-icon-box">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
               </svg>
             </div>
@@ -720,7 +715,7 @@ const Login = () => {
                     className="forgot-btn-link"
                     onClick={() => {
                       setIsForgotMode(true);
-                      setForgotEmail(email); // Pre-fill email if typed
+                      setForgotEmail(email);
                     }}
                   >
                     Forgot Password?
@@ -739,7 +734,7 @@ const Login = () => {
 
               <div className="oauth-btn-grid">
                 <button type="button" onClick={handleGoogleLogin} className="oauth-btn">
-                  <svg width="16" height="16" viewBox="0 0 24 24">
+                  <svg width="18" height="18" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
@@ -748,7 +743,7 @@ const Login = () => {
                   <span>Google</span>
                 </button>
                 <button type="button" onClick={handleGithubLogin} className="oauth-btn">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                     <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
                   </svg>
                   <span>GitHub</span>
@@ -766,7 +761,7 @@ const Login = () => {
                 <p>Choose your preferred verification method</p>
               </div>
 
-              {/* RESET METHOD SELECTOR (EMAIL vs MOBILE) */}
+              {/* RESET METHOD SELECTOR */}
               <div className="role-switch-container">
                 <button
                   type="button"
@@ -894,4 +889,5 @@ const Login = () => {
     </div>
   );
 };
+
 export default Login;

@@ -38,7 +38,7 @@ const CustomerDashboard = () => {
     }
   };
 
-  const recentBookings = bookings.slice(0, 3);
+  const recentBookings = bookings.slice(0, 4);
   const totalBookingsCount = bookings.length;
   const completedCount = bookings.filter((b) => {
     const s = String(b.status || '').toUpperCase();
@@ -58,9 +58,13 @@ const CustomerDashboard = () => {
     <div className="dash-landing-container">
       <style>{`
         .dash-landing-container {
-          max-width: 1160px;
+          width: 100%;
+          max-width: 1560px;
           margin: 0 auto;
+          padding: 8px 32px 48px 32px;
+          box-sizing: border-box;
           color: #0f172a;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
         /* 1. WELCOME SECTION */
@@ -69,45 +73,52 @@ const CustomerDashboard = () => {
         }
 
         .dash-greeting h1 {
-          font-size: 1.75rem;
+          font-size: 2.1rem;
           font-weight: 800;
           color: #0f172a;
           margin: 0 0 6px 0;
+          letter-spacing: -0.5px;
         }
 
         .dash-greeting p {
           color: #64748b;
-          font-size: 0.92rem;
+          font-size: 1rem;
           margin: 0;
         }
 
-        /* 2. SUMMARY CARDS ROW */
+        /* 2. SUMMARY METRICS ROW */
         .summary-metrics-grid {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
-          gap: 16px;
+          gap: 20px;
           margin-bottom: 28px;
         }
 
         .summary-metric-card {
           background: #ffffff;
           border: 1px solid #e2e8f0;
-          border-radius: 14px;
-          padding: 18px 20px;
+          border-radius: 18px;
+          padding: 22px 24px;
           display: flex;
           align-items: center;
-          gap: 16px;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+          gap: 18px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+          transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .summary-metric-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
         }
 
         .metric-icon-square {
-          width: 46px;
-          height: 46px;
-          border-radius: 12px;
+          width: 54px;
+          height: 54px;
+          border-radius: 14px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 1.35rem;
+          font-size: 1.55rem;
           flex-shrink: 0;
         }
 
@@ -118,17 +129,17 @@ const CustomerDashboard = () => {
 
         .metric-details span {
           display: block;
-          font-size: 0.78rem;
+          font-size: 0.8rem;
           color: #64748b;
-          font-weight: 600;
-          margin-bottom: 2px;
+          font-weight: 700;
+          margin-bottom: 3px;
           text-transform: uppercase;
-          letter-spacing: 0.5px;
+          letter-spacing: 0.6px;
         }
 
         .metric-details h3 {
           margin: 0;
-          font-size: 1.4rem;
+          font-size: 1.65rem;
           font-weight: 800;
           color: #0f172a;
         }
@@ -136,66 +147,65 @@ const CustomerDashboard = () => {
         /* 3. PROMOTIONAL HERO BANNER */
         .promo-hero-card {
           background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%);
-          border-radius: 18px;
-          padding: 30px 36px;
+          border-radius: 22px;
+          padding: 38px 46px;
           color: #ffffff;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 30px;
-          box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.28);
+          margin-bottom: 32px;
+          box-shadow: 0 12px 30px -5px rgba(37, 99, 235, 0.28);
           position: relative;
           overflow: hidden;
         }
 
         .promo-text-wrap {
-          max-width: 540px;
+          max-width: 680px;
           z-index: 2;
         }
 
         .promo-tag {
           display: inline-block;
-          background: rgba(255, 255, 255, 0.2);
-          border: 1px solid rgba(255, 255, 255, 0.35);
-          padding: 4px 12px;
+          background: rgba(255, 255, 255, 0.22);
+          border: 1px solid rgba(255, 255, 255, 0.4);
+          padding: 5px 14px;
           border-radius: 20px;
-          font-size: 0.75rem;
+          font-size: 0.78rem;
           font-weight: 700;
           margin-bottom: 12px;
-          letter-spacing: 0.5px;
+          letter-spacing: 0.6px;
         }
 
         .promo-text-wrap h2 {
-          font-size: 1.65rem;
+          font-size: 2.1rem;
           font-weight: 800;
-          margin: 0 0 8px 0;
+          margin: 0 0 10px 0;
           line-height: 1.25;
         }
 
         .promo-text-wrap p {
-          font-size: 0.9rem;
-          margin: 0 0 18px 0;
-          color: rgba(255, 255, 255, 0.9);
+          font-size: 1rem;
+          margin: 0 0 20px 0;
+          color: rgba(255, 255, 255, 0.92);
         }
 
         .promo-search-bar {
           display: flex;
           background: #ffffff !important;
-          background-color: #ffffff !important;
           border-radius: 12px;
-          padding: 5px;
-          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+          padding: 6px;
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+          max-width: 580px;
         }
 
         .promo-search-bar input {
           flex: 1;
           border: none;
           outline: none;
-          padding: 10px 14px;
-          font-size: 0.9rem;
+          padding: 12px 16px;
+          font-size: 0.95rem;
           color: #0f172a !important;
           background: #ffffff !important;
-          background-color: #ffffff !important;
         }
 
         .promo-search-bar input:-webkit-autofill {
@@ -207,65 +217,74 @@ const CustomerDashboard = () => {
           background: #2563eb;
           color: #ffffff;
           border: none;
-          padding: 0 22px;
+          padding: 0 26px;
           border-radius: 9px;
           font-weight: 700;
-          font-size: 0.88rem;
+          font-size: 0.92rem;
           cursor: pointer;
+          transition: background 0.15s ease;
+        }
+
+        .promo-search-bar button:hover {
+          background: #1d4ed8;
         }
 
         .promo-art {
-          font-size: 5.5rem;
+          font-size: 7rem;
           z-index: 2;
           user-select: none;
+          margin-right: 16px;
         }
 
         /* 4. QUICK ACTIONS ROW */
         .quick-actions-bar {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 16px;
-          margin-bottom: 32px;
+          gap: 20px;
+          margin-bottom: 34px;
         }
 
         .action-shortcut-card {
           background: #ffffff;
           border: 1px solid #e2e8f0;
-          border-radius: 12px;
-          padding: 14px 18px;
+          border-radius: 16px;
+          padding: 18px 22px;
           display: flex;
           align-items: center;
-          gap: 14px;
+          gap: 16px;
           text-decoration: none;
           color: #0f172a;
-          transition: transform 0.15s, border-color 0.15s;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+          transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
         }
 
         .action-shortcut-card:hover {
           transform: translateY(-2px);
           border-color: #2563eb;
+          box-shadow: 0 6px 16px rgba(37, 99, 235, 0.08);
         }
 
         .action-circle-icon {
-          width: 38px;
-          height: 38px;
-          border-radius: 10px;
+          width: 44px;
+          height: 44px;
+          border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 1.15rem;
+          font-size: 1.25rem;
+          flex-shrink: 0;
         }
 
         .action-title {
-          font-size: 0.88rem;
+          font-size: 0.95rem;
           font-weight: 700;
           margin: 0;
         }
 
         .action-desc {
-          font-size: 0.75rem;
+          font-size: 0.8rem;
           color: #64748b;
-          margin: 2px 0 0 0;
+          margin: 3px 0 0 0;
         }
 
         /* 5. POPULAR SERVICES GRID */
@@ -273,82 +292,84 @@ const CustomerDashboard = () => {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 16px;
+          margin-bottom: 18px;
         }
 
         .section-header-row h3 {
           margin: 0;
-          font-size: 1.15rem;
-          font-weight: 700;
+          font-size: 1.25rem;
+          font-weight: 800;
           color: #0f172a;
         }
 
         .section-header-row a {
-          font-size: 0.85rem;
+          font-size: 0.9rem;
           color: #2563eb;
-          font-weight: 600;
+          font-weight: 700;
           text-decoration: none;
         }
 
         .popular-cats-grid {
           display: grid;
           grid-template-columns: repeat(6, 1fr);
-          gap: 14px;
-          margin-bottom: 34px;
+          gap: 16px;
+          margin-bottom: 38px;
         }
 
         .pop-cat-box {
           background: #ffffff;
           border: 1px solid #e2e8f0;
-          border-radius: 14px;
-          padding: 16px 12px;
+          border-radius: 16px;
+          padding: 20px 14px;
           text-align: center;
           cursor: pointer;
           transition: all 0.15s ease;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
         }
 
         .pop-cat-box:hover {
           border-color: #2563eb;
-          box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
-          transform: translateY(-2px);
+          box-shadow: 0 6px 18px rgba(37, 99, 235, 0.12);
+          transform: translateY(-3px);
         }
 
         .pop-cat-icon {
-          font-size: 1.8rem;
+          font-size: 2.1rem;
           margin-bottom: 8px;
         }
 
         .pop-cat-box h4 {
           margin: 0 0 4px 0;
-          font-size: 0.85rem;
+          font-size: 0.92rem;
           font-weight: 700;
           color: #0f172a;
         }
 
         .pop-cat-box span {
-          font-size: 0.72rem;
+          font-size: 0.76rem;
           color: #64748b;
         }
 
         /* 6. BOTTOM ROW: RECENT BOOKINGS + NOTIFICATIONS */
         .bottom-split-row {
           display: grid;
-          grid-template-columns: 2fr 1fr;
-          gap: 20px;
+          grid-template-columns: 1.9fr 1.1fr;
+          gap: 24px;
         }
 
         .split-card-panel {
           background: #ffffff;
           border: 1px solid #e2e8f0;
-          border-radius: 16px;
-          padding: 22px;
+          border-radius: 18px;
+          padding: 26px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
         }
 
         .booking-mini-item {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 12px 0;
+          padding: 14px 0;
           border-bottom: 1px solid #f1f5f9;
         }
 
@@ -358,34 +379,34 @@ const CustomerDashboard = () => {
 
         .booking-mini-title {
           font-weight: 700;
-          font-size: 0.9rem;
-          margin: 0 0 3px 0;
+          font-size: 0.95rem;
+          margin: 0 0 4px 0;
         }
 
         .booking-mini-meta {
-          font-size: 0.78rem;
+          font-size: 0.82rem;
           color: #64748b;
           margin: 0;
         }
 
         .status-chip {
-          padding: 4px 10px;
+          padding: 4px 12px;
           border-radius: 20px;
-          font-size: 0.72rem;
+          font-size: 0.74rem;
           font-weight: 700;
         }
 
         .status-COMPLETED { background: #eff6ff; color: #2563eb; }
         .status-PAID { background: #ecfdf5; color: #059669; }
         .status-PENDING { background: #fefce8; color: #ca8a04; }
-        .status-ACCEPTED { background: #f0fdf4; color: #16a34a; }
+        .status-ACCEPTED, .status-CONFIRMED { background: #f0fdf4; color: #16a34a; }
         .status-CANCELLED { background: #fef2f2; color: #dc2626; }
 
         .notif-item {
           display: flex;
           align-items: flex-start;
-          gap: 12px;
-          padding: 10px 0;
+          gap: 14px;
+          padding: 12px 0;
           border-bottom: 1px solid #f1f5f9;
         }
 
@@ -394,8 +415,8 @@ const CustomerDashboard = () => {
         }
 
         .notif-dot {
-          width: 8px;
-          height: 8px;
+          width: 9px;
+          height: 9px;
           border-radius: 50%;
           background: #2563eb;
           margin-top: 6px;
@@ -403,23 +424,29 @@ const CustomerDashboard = () => {
         }
 
         .notif-text {
-          font-size: 0.82rem;
+          font-size: 0.86rem;
           color: #334155;
           margin: 0;
-          line-height: 1.4;
+          line-height: 1.45;
         }
 
         .notif-time {
-          font-size: 0.72rem;
+          font-size: 0.74rem;
           color: #94a3b8;
         }
 
-        @media (max-width: 960px) {
-          .summary-metrics-grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
+        @media (max-width: 1200px) {
           .popular-cats-grid {
             grid-template-columns: repeat(3, 1fr);
+          }
+        }
+
+        @media (max-width: 960px) {
+          .dash-landing-container {
+            padding: 12px 16px 36px 16px;
+          }
+          .summary-metrics-grid {
+            grid-template-columns: repeat(2, 1fr);
           }
           .quick-actions-bar {
             grid-template-columns: 1fr;
