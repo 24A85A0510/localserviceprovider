@@ -3,7 +3,23 @@ import React, { useState } from 'react';
 const PaymentModal = ({ booking, onClose, onSuccess }) => {
   const [paymentMethod, setPaymentMethod] = useState('CARD');
   const [loading, setLoading] = useState(false);
-  const [amount] = useState(booking.service?.price || 500); // Fallback amount
+
+  // Read price from booking object directly or nested service, fallback to 0 instead of 500
+  const initialAmount =
+    booking?.price ??
+    booking?.amount ??
+    booking?.servicePrice ??
+    booking?.service?.price ??
+    0;
+
+  const [amount] = useState(initialAmount);
+
+  // Read service name from booking
+  const serviceTitle =
+    booking?.serviceTitle ||
+    booking?.serviceName ||
+    booking?.service?.title ||
+    'Service';
 
   const handlePayment = async () => {
     setLoading(true);
@@ -47,7 +63,7 @@ const PaymentModal = ({ booking, onClose, onSuccess }) => {
         backgroundColor: '#1e293b', padding: '24px', borderRadius: '12px', width: '360px', color: '#f8fafc', border: '1px solid #334155'
       }}>
         <h3 style={{ marginTop: 0, color: '#38bdf8' }}>💳 Complete Payment</h3>
-        <p><strong>Service:</strong> {booking.serviceName || 'Local Service'}</p>
+        <p><strong>Service:</strong> {serviceTitle}</p>
         <p><strong>Amount:</strong> ₹{amount}</p>
 
         <div style={{ margin: '16px 0' }}>

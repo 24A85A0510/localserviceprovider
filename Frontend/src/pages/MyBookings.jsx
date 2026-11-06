@@ -9,15 +9,18 @@ import PaymentModal from '../components/PaymentModal';
 // Status badge styling system
 const STATUS_CONFIG = {
   ACCEPTED: { bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0' },
+  WAITING_APPROVAL: { bg: '#fff7ed', color: '#ea580c', border: '#ffedd5' },
+  CONFIRMED: { bg: '#eff6ff', color: '#2563eb', border: '#bfdbfe' },
+  APPROVED: { bg: '#eff6ff', color: '#2563eb', border: '#bfdbfe' },
   ON_THE_WAY: { bg: '#faf5ff', color: '#9333ea', border: '#e9d5ff' },
-  COMPLETED: { bg: '#eff6ff', color: '#2563eb', border: '#bfdbfe' },
+  COMPLETED: { bg: '#fefce8', color: '#ca8a04', border: '#fef08a' },
   PAID: { bg: '#ecfdf5', color: '#059669', border: '#a7f3d0' },
   PENDING: { bg: '#fefce8', color: '#ca8a04', border: '#fef08a' },
   REJECTED: { bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
   CANCELLED: { bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
 };
 
-const TABS = ['ALL', 'PENDING', 'ACCEPTED', 'ON_THE_WAY', 'COMPLETED', 'PAID', 'CANCELLED', 'REJECTED'];
+const TABS = ['ALL', 'PENDING', 'WAITING_APPROVAL', 'CONFIRMED', 'ON_THE_WAY', 'COMPLETED', 'PAID', 'CANCELLED', 'REJECTED'];
 
 const StatusBadge = ({ status }) => {
   const safeStatus = status ? String(status).toUpperCase() : 'PENDING';
@@ -36,7 +39,7 @@ const StatusBadge = ({ status }) => {
         display: 'inline-block',
       }}
     >
-      {safeStatus}
+      {safeStatus.replace('_', ' ')}
     </span>
   );
 };
@@ -112,7 +115,7 @@ const TabFilters = ({ tabs = [], activeTab, onSelectTab, counts = {} }) => (
             transition: 'all 0.15s ease',
           }}
         >
-          {tab} {count > 0 && `(${count})`}
+          {tab.replace('_', ' ')} {count > 0 && `(${count})`}
         </button>
       );
     })}
@@ -126,10 +129,14 @@ const BookingCard = ({
   onOpenDetails,
   onStatusUpdate,
   onCancel,
+  onProposePrice,
+  onRespondQuote,
   onOpenReview,
   onOpenPayment,
 }) => {
   const status = booking.status ? String(booking.status).toUpperCase() : 'PENDING';
+  const isPaid = (booking.paymentStatus && String(booking.paymentStatus).toUpperCase() === 'PAID') || status === 'PAID';
+  const [quoteInput, setQuoteInput] = useState(booking.amount || '');
 
   const lat = booking.customerLatitude ?? booking.customerLat ?? booking.latitude;
   const lng = booking.customerLongitude ?? booking.customerLng ?? booking.longitude;
@@ -159,6 +166,11 @@ const BookingCard = ({
           <p style={{ margin: '4px 0', color: '#475569', fontSize: '14px' }}>
             <strong style={{ color: '#0f172a' }}>Address:</strong> {booking.address || 'Not Provided'}
           </p>
+          {booking.amount != null && (
+            <p style={{ margin: '4px 0', color: '#16a34a', fontSize: '15px', fontWeight: '700' }}>
+              Quoted Amount: ₹{booking.amount}
+            </p>
+          )}
           {booking.notes && (
             <p style={{ margin: '6px 0 0 0', color: '#64748b', fontSize: '13px' }}>
               <strong>Notes:</strong> {booking.notes}
@@ -189,45 +201,53 @@ const BookingCard = ({
             👁️ Details
           </button>
 
-          {/* Provider Actions */}
-          {isProvider && status === 'PENDING' && (
-            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-              <button
-                type="button"
-                onClick={() => onStatusUpdate(booking.id, 'ACCEPTED')}
-                style={{
-                  padding: '6px 14px',
-                  backgroundColor: '#16a34a',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontWeight: '600',
-                  fontSize: '13px',
-                }}
-              >
-                Accept
-              </button>
-              <button
-                type="button"
-                onClick={() => onStatusUpdate(booking.id, 'REJECTED')}
-                style={{
-                  padding: '6px 14px',
-                  backgroundColor: '#dc2626',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontWeight: '600',
-                  fontSize: '13px',
-                }}
-              >
-                Reject
-              </button>
+          {/* Provider: Propose / Update Quote Section */}
+          {isProvider && (status === 'PENDING' || status === 'ACCEPTED') && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-end', marginTop: '6px' }}>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <input
+                  type="number"
+                  placeholder="Set Total ₹"
+                  value={quoteInput}
+                  onChange={(e) => setQuoteInput(e.target.value)}
+                  style={{
+                    width: '110px',
+                    padding: '6px 8px',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '13px',
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => onProposePrice(booking.id, quoteInput)}
+                  style={{
+                    padding: '6px 12px',
+                    backgroundColor: '#ea580c',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontWeight: '700',
+                    fontSize: '13px',
+                  }}
+                >
+                  Send Quote
+                </button>
+              </div>
+              <span style={{ fontSize: '11px', color: '#64748b' }}>Customer must approve before start</span>
             </div>
           )}
 
-          {isProvider && status === 'ACCEPTED' && (
+          {/* Provider: Waiting on Customer Approval Indicator */}
+          {isProvider && status === 'WAITING_APPROVAL' && (
+            <span style={{ fontSize: '12px', color: '#ea580c', fontWeight: '600' }}>
+              ⏳ Waiting for customer to accept ₹{booking.amount}
+            </span>
+          )}
+
+          {/* Provider: Start Journey after Customer Confirms */}
+          {isProvider && status === 'CONFIRMED' && (
             <button
               type="button"
               onClick={() => onStatusUpdate(booking.id, 'ON_THE_WAY')}
@@ -247,6 +267,7 @@ const BookingCard = ({
             </button>
           )}
 
+          {/* Provider: Complete the Job */}
           {isProvider && status === 'ON_THE_WAY' && (
             <button
               type="button"
@@ -267,7 +288,57 @@ const BookingCard = ({
             </button>
           )}
 
-          {/* Customer Actions */}
+          {/* Customer: Reviews & Decides on Quote */}
+          {!isProvider && status === 'WAITING_APPROVAL' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-end', marginTop: '4px' }}>
+              <div style={{ fontSize: '13px', fontWeight: '700', color: '#0f172a' }}>
+                Provider Quoted: <span style={{ color: '#16a34a' }}>₹{booking.amount}</span>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => onRespondQuote(booking.id, true)}
+                  style={{
+                    padding: '6px 14px',
+                    backgroundColor: '#16a34a',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontWeight: '700',
+                    fontSize: '13px',
+                  }}
+                >
+                  ✓ Accept Quote
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onRespondQuote(booking.id, false)}
+                  style={{
+                    padding: '6px 14px',
+                    backgroundColor: '#dc2626',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontWeight: '700',
+                    fontSize: '13px',
+                  }}
+                >
+                  ✕ Reject
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Customer: Confirmed Notice (Awaiting Service Completion) */}
+          {!isProvider && (status === 'CONFIRMED' || status === 'ON_THE_WAY') && !isPaid && (
+            <span style={{ fontSize: '13px', color: '#2563eb', fontWeight: '600', marginTop: '4px' }}>
+              {status === 'ON_THE_WAY' ? '🚗 Provider is on the way!' : `✓ Quote approved (₹${booking.amount}). Service scheduled.`}
+            </span>
+          )}
+
+          {/* Customer: Cancel button for pending bookings */}
           {!isProvider && status === 'PENDING' && (
             <button
               type="button"
@@ -288,7 +359,8 @@ const BookingCard = ({
             </button>
           )}
 
-          {!isProvider && status === 'COMPLETED' && (
+          {/* Customer: Payment is strictly unlocked ONLY after completion */}
+          {!isProvider && status === 'COMPLETED' && !isPaid && (
             <button
               type="button"
               onClick={() => onOpenPayment(booking)}
@@ -305,11 +377,12 @@ const BookingCard = ({
                 boxShadow: '0 2px 6px rgba(22, 163, 74, 0.3)',
               }}
             >
-              💳 Pay Now
+              💳 Pay ₹{booking.amount || booking.servicePrice || ''}
             </button>
           )}
 
-          {!isProvider && (status === 'COMPLETED' || status === 'PAID') && (
+          {/* Customer: Review prompt */}
+          {!isProvider && (status === 'COMPLETED' || isPaid) && (
             <button
               type="button"
               onClick={() => onOpenReview(booking)}
@@ -329,7 +402,8 @@ const BookingCard = ({
             </button>
           )}
 
-          {status === 'PAID' && (
+          {/* Paid Confirmation Badge */}
+          {isPaid && (
             <span
               style={{
                 padding: '4px 10px',
@@ -415,6 +489,11 @@ const BookingDetailsModal = ({ booking = {}, isProvider, onClose }) => {
           <p style={{ margin: 0 }}>
             <strong style={{ color: '#0f172a' }}>Service Address:</strong> {booking.address || 'N/A'}
           </p>
+          {booking.amount != null && (
+            <p style={{ margin: 0 }}>
+              <strong style={{ color: '#0f172a' }}>Quoted Price:</strong> ₹{booking.amount}
+            </p>
+          )}
 
           <hr style={{ borderColor: '#e2e8f0', margin: '4px 0' }} />
 
@@ -538,6 +617,38 @@ const MyBookings = () => {
     }
   };
 
+  // Provider proposes price
+  const handleProposePrice = async (bookingId, amount) => {
+    if (!amount || Number(amount) <= 0) {
+      alert('Please enter a valid price greater than 0.');
+      return;
+    }
+    try {
+      await API.put(`/bookings/${bookingId}/propose-price?amount=${Number(amount)}`);
+      alert(`Quote of ₹${amount} sent to customer for approval.`);
+      fetchBookingsAndAnalytics();
+    } catch (err) {
+      console.error('Propose price error:', err);
+      alert(err.response?.data?.message || err.response?.data || 'Failed to send quote.');
+    }
+  };
+
+  // Customer responds to quote
+  const handleRespondQuote = async (bookingId, accept) => {
+    const actionText = accept ? 'accept and confirm' : 'reject';
+    if (!window.confirm(`Are you sure you want to ${actionText} this price quote?`)) {
+      return;
+    }
+    try {
+      await API.put(`/bookings/${bookingId}/respond-quote?accept=${accept}`);
+      alert(accept ? 'Quote accepted! Booking confirmed.' : 'Quote rejected.');
+      fetchBookingsAndAnalytics();
+    } catch (err) {
+      console.error('Respond quote error:', err);
+      alert(err.response?.data?.message || err.response?.data || 'Failed to process decision.');
+    }
+  };
+
   const handleCancelBooking = async (bookingId) => {
     if (!window.confirm('Are you sure you want to cancel this booking?')) {
       return;
@@ -571,7 +682,7 @@ const MyBookings = () => {
         {isProvider ? 'Provider Dashboard' : 'My Bookings'}
       </h2>
       <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '0 0 20px 0' }}>
-        {isProvider ? 'Manage incoming job orders and fulfillment status' : 'Track and manage your scheduled service reservations'}
+        {isProvider ? 'Manage incoming job orders, send price quotes, and fulfill requests' : 'Track and manage your scheduled service reservations and quotes'}
       </p>
 
       {/* Provider Business Analytics Summary */}
@@ -643,6 +754,8 @@ const MyBookings = () => {
                 onOpenDetails={setSelectedBookingForDetails}
                 onStatusUpdate={handleStatusUpdate}
                 onCancel={handleCancelBooking}
+                onProposePrice={handleProposePrice}
+                onRespondQuote={handleRespondQuote}
                 onOpenReview={setSelectedBookingForReview}
                 onOpenPayment={setSelectedBookingForPayment}
               />

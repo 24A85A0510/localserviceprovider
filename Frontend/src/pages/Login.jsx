@@ -11,9 +11,11 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
 
-  // --- FORGOT PASSWORD STATES ---
+  // --- DUAL FORGOT PASSWORD STATES ---
   const [isForgotMode, setIsForgotMode] = useState(false);
+  const [resetMethod, setResetMethod] = useState('EMAIL'); // 'EMAIL' or 'MOBILE'
   const [forgotStep, setForgotStep] = useState(1);
+  const [forgotEmail, setForgotEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -100,7 +102,6 @@ const Login = () => {
 
       login(cleanToken, fullUserData, cleanRole);
 
-      // Role-based route redirection
       if (cleanRole === 'ADMIN') {
         navigate('/admin');
       } else if (cleanRole === 'PROVIDER') {
@@ -117,6 +118,7 @@ const Login = () => {
     }
   };
 
+  // 1. Send OTP (Email or Mobile)
   const handleRequestOtp = async (e) => {
     e.preventDefault();
     setForgotError('');
@@ -124,20 +126,31 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await API.post('/auth/forgot-password', { email, phone });
-      setForgotMessage(response.data || 'OTP sent successfully!');
+      if (resetMethod === 'EMAIL') {
+        const response = await API.post('/auth/forgot-password', {
+          email: forgotEmail.trim(),
+          phone: phone.trim(),
+        });
+        setForgotMessage(response.data || 'OTP sent successfully to your email!');
+      } else {
+        const response = await API.post('/auth/forgot-password-mobile', {
+          phone: phone.trim(),
+        });
+        setForgotMessage(response.data || 'OTP sent to mobile number successfully!');
+      }
       setForgotStep(2);
     } catch (err) {
       setForgotError(
         err.response?.data?.message ||
           err.response?.data ||
-          'Failed to send OTP. Please check email and phone number.'
+          'Failed to send OTP. Please check your details.'
       );
     } finally {
       setLoading(false);
     }
   };
 
+  // 2. Reset Password (Email or Mobile)
   const handleResetPassword = async (e) => {
     e.preventDefault();
     setForgotError('');
@@ -145,19 +158,28 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await API.post('/auth/reset-password', {
-        email,
-        phone,
-        otp,
-        newPassword,
-      });
-      setForgotMessage(response.data || 'Password reset successful! You can now log in.');
+      if (resetMethod === 'EMAIL') {
+        const response = await API.post('/auth/reset-password', {
+          email: forgotEmail.trim(),
+          phone: phone.trim(),
+          otp: otp.trim(),
+          newPassword,
+        });
+        setForgotMessage(response.data || 'Password reset successful! You can now log in.');
+      } else {
+        const response = await API.post('/auth/reset-password-mobile', {
+          phone: phone.trim(),
+          otp: otp.trim(),
+          newPassword,
+        });
+        setForgotMessage(response.data || 'Password reset successful! You can now log in.');
+      }
       setTimeout(() => resetForgotState(), 2500);
     } catch (err) {
       setForgotError(
         err.response?.data?.message ||
           err.response?.data ||
-          'Failed to reset password. Check OTP.'
+          'Failed to reset password. Check your OTP.'
       );
     } finally {
       setLoading(false);
@@ -166,8 +188,9 @@ const Login = () => {
 
   const resetForgotState = () => {
     setIsForgotMode(false);
+    setResetMethod('EMAIL');
     setForgotStep(1);
-    setEmail('');
+    setForgotEmail('');
     setPhone('');
     setOtp('');
     setNewPassword('');
@@ -332,7 +355,7 @@ const Login = () => {
         .form-title-head p {
           font-size: 0.86rem;
           color: #64748b;
-          margin: 0 0 20px 0;
+          margin: 0 0 16px 0;
         }
 
         .role-switch-container {
@@ -354,6 +377,7 @@ const Login = () => {
           color: #64748b;
           border-radius: 7px;
           cursor: pointer;
+          transition: all 0.2s ease;
         }
 
         .role-option-btn.active {
@@ -401,7 +425,6 @@ const Login = () => {
           color: #0f172a !important;
         }
 
-        /* Prevent dark autofill */
         .input-box-wrapper input:-webkit-autofill,
         .input-box-wrapper input:-webkit-autofill:hover,
         .input-box-wrapper input:-webkit-autofill:focus,
@@ -460,6 +483,7 @@ const Login = () => {
           justify-content: center;
           gap: 6px;
           box-shadow: 0 4px 12px rgba(37, 99, 235, 0.28);
+          transition: background 0.2s;
         }
 
         .primary-action-btn:hover {
@@ -574,7 +598,7 @@ const Login = () => {
       `}</style>
 
       <div className="login-shell">
-        {/* LEFT BRAND PANEL */}
+        {/* LEFT BANNER PANEL */}
         <div className="login-banner-col">
           <div className="brand-header-row">
             <div className="brand-icon-box">
@@ -629,7 +653,7 @@ const Login = () => {
                 <p>Login to your account</p>
               </div>
 
-              {/* ROLE TOGGLE */}
+              {/* ROLE SWITCH */}
               <div className="role-switch-container">
                 {['CUSTOMER', 'PROVIDER', 'ADMIN'].map((role) => (
                   <button
@@ -694,7 +718,10 @@ const Login = () => {
                   <button
                     type="button"
                     className="forgot-btn-link"
-                    onClick={() => setIsForgotMode(true)}
+                    onClick={() => {
+                      setIsForgotMode(true);
+                      setForgotEmail(email); // Pre-fill email if typed
+                    }}
                   >
                     Forgot Password?
                   </button>
@@ -736,7 +763,35 @@ const Login = () => {
             <div className="form-content-inner">
               <div className="form-title-head">
                 <h2>Reset Password</h2>
-                <p>Verify your details to restore access</p>
+                <p>Choose your preferred verification method</p>
+              </div>
+
+              {/* RESET METHOD SELECTOR (EMAIL vs MOBILE) */}
+              <div className="role-switch-container">
+                <button
+                  type="button"
+                  className={`role-option-btn ${resetMethod === 'EMAIL' ? 'active' : ''}`}
+                  onClick={() => {
+                    setResetMethod('EMAIL');
+                    setForgotStep(1);
+                    setForgotError('');
+                    setForgotMessage('');
+                  }}
+                >
+                  Via Email
+                </button>
+                <button
+                  type="button"
+                  className={`role-option-btn ${resetMethod === 'MOBILE' ? 'active' : ''}`}
+                  onClick={() => {
+                    setResetMethod('MOBILE');
+                    setForgotStep(1);
+                    setForgotError('');
+                    setForgotMessage('');
+                  }}
+                >
+                  Via Mobile
+                </button>
               </div>
 
               {forgotError && <div className="msg-alert err">{forgotError}</div>}
@@ -744,33 +799,57 @@ const Login = () => {
 
               {forgotStep === 1 ? (
                 <form onSubmit={handleRequestOtp}>
-                  <div className="input-block">
-                    <label>Registered Email</label>
-                    <div className="input-box-wrapper">
-                      <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Enter email"
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="input-block">
-                    <label>Registered Phone Number</label>
-                    <div className="input-box-wrapper">
-                      <input
-                        type="text"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        placeholder="10-digit phone"
-                        required
-                      />
-                    </div>
-                  </div>
-                  <button type="submit" className="primary-action-btn" disabled={loading}>
-                    {loading ? 'Sending OTP...' : 'Send OTP →'}
-                  </button>
+                  {resetMethod === 'EMAIL' ? (
+                    <>
+                      <div className="input-block">
+                        <label>Registered Email</label>
+                        <div className="input-box-wrapper">
+                          <input
+                            type="email"
+                            value={forgotEmail}
+                            onChange={(e) => setForgotEmail(e.target.value)}
+                            placeholder="name@example.com"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="input-block">
+                        <label>Registered Phone Number</label>
+                        <div className="input-box-wrapper">
+                          <input
+                            type="tel"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="10-digit number"
+                            maxLength={10}
+                            required
+                          />
+                        </div>
+                      </div>
+                      <button type="submit" className="primary-action-btn" disabled={loading}>
+                        {loading ? 'Sending OTP...' : 'Send OTP to Email →'}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="input-block">
+                        <label>Registered Mobile Number</label>
+                        <div className="input-box-wrapper">
+                          <input
+                            type="tel"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="e.g. 9876543210"
+                            maxLength={10}
+                            required
+                          />
+                        </div>
+                      </div>
+                      <button type="submit" className="primary-action-btn" disabled={loading}>
+                        {loading ? 'Sending OTP...' : 'Send OTP via Mobile →'}
+                      </button>
+                    </>
+                  )}
                 </form>
               ) : (
                 <form onSubmit={handleResetPassword}>
@@ -782,6 +861,7 @@ const Login = () => {
                         value={otp}
                         onChange={(e) => setOtp(e.target.value)}
                         placeholder="Enter 6-digit OTP"
+                        maxLength={6}
                         required
                       />
                     </div>
@@ -799,7 +879,7 @@ const Login = () => {
                     </div>
                   </div>
                   <button type="submit" className="primary-action-btn" disabled={loading}>
-                    {loading ? 'Updating...' : 'Reset Password →'}
+                    {loading ? 'Updating...' : 'Set New Password →'}
                   </button>
                 </form>
               )}
@@ -814,5 +894,4 @@ const Login = () => {
     </div>
   );
 };
-
 export default Login;
